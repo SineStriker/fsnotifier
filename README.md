@@ -2,7 +2,7 @@
 
 ## Brief
 
-Cross-platform C++ file system watcher library using JetBrains fsnotifier.
+C++ cross-platform file system watcher library using JetBrains fsnotifier.
 
 ## JetBrains IntelliJ IDEA
 
