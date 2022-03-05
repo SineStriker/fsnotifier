@@ -1,5 +1,9 @@
 # Filesystem events processor
 
+## Brief
+
+Cross-platform C++ file system watcher library using JetBrains fsnotifier.
+
 ## JetBrains IntelliJ IDEA
 
 IntelliJ IDEA uses a child process to notify the host of file system changes safely and efficiently.
