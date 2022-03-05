@@ -38,3 +38,4 @@ build*
 Libs/*
 *.lnk
 cmake-*
+JetBrainsFileWatcherCore*
