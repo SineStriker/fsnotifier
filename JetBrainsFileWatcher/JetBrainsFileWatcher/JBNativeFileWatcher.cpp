@@ -3,7 +3,6 @@
 #include "JBFileWatcherNotificationSink.h"
 #include "JBLocalFileSystem.h"
 
-#include <QApplication>
 #include <QFileInfo>
 
 typedef JBFileWatcherUtils::WatcherOp WatcherOp;
@@ -95,7 +94,7 @@ bool JBNativeFileWatcher::shutdownProcess() {
             return false;
         }
         if (!myProcess->waitForFinished(500)) {
-            jbDebug() << "File watcher is still alive, doing a force quit.";
+            jbWarning() << "File watcher is still alive, doing a force quit.";
             if (!killProcess()) {
                 return false;
             }
@@ -147,7 +146,7 @@ void JBNativeFileWatcher::setWatchRootsCore(QStringList recursive, QStringList f
         flag &= writeLine("#");
     }
     if (!flag) {
-        jbDebug() << "Error setting roots.";
+        jbWarning() << "Error setting roots.";
     }
 }
 
@@ -212,7 +211,7 @@ void JBNativeFileWatcher::notifyProcessTerminated(int exitCode, QProcess::ExitSt
 
     if (!startupProcess(true)) {
         shutdownProcess();
-        jbDebug()
+        jbWarning()
             << "Watcher terminated and attempt to restart has failed. Exiting watching thread.";
     }
 }
@@ -220,14 +219,14 @@ void JBNativeFileWatcher::notifyProcessTerminated(int exitCode, QProcess::ExitSt
 void JBNativeFileWatcher::notifyTextAvailable(const QString &line,
                                               QProcess::ProcessChannel channel) {
     if (channel == QProcess::StandardError) {
-        jbDebug() << line;
+        jbWarning() << line;
         return;
     }
 
     if (myLastOp == WatcherOp::UNKNOWN) {
         WatcherOp watcherOp = JBFileWatcherUtils::StringToWatcherOp(line);
         if (watcherOp == WatcherOp::UNKNOWN) {
-            jbDebug() << "Illegal watcher command: '" + line + "'";
+            jbWarning() << "Illegal watcher command: '" + line + "'";
             return;
         }
         if (watcherOp == WatcherOp::GIVEUP) {
@@ -318,7 +317,7 @@ void JBNativeFileWatcher::processChange(const QString &path, WatcherOp op) {
         break;
 
     default:
-        jbDebug() << "Unexpected op:" << JBFileWatcherUtils::WatcherOpToString(op);
+        jbWarning() << "Unexpected op:" << JBFileWatcherUtils::WatcherOpToString(op);
     }
 }
 

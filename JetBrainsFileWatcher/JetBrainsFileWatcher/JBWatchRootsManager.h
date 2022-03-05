@@ -20,9 +20,11 @@ public:
     typedef JBFileWatchRequest WatchRequest;
 
 public:
-    QList<WatchRequest> replaceWatchedRoots(const QList<WatchRequest> &requestsToRemove,
+    QSet<WatchRequest> replaceWatchedRoots(const QList<WatchRequest> &requestsToRemove,
                                             const QStringList &recursiveRootsToAdd,
                                             const QStringList &flatRootsToAdd);
+
+    QSet<WatchRequest> currentWatchRequests() const;
 
     void clear();
 
@@ -32,8 +34,8 @@ public:
 private:
     JBFileWatcher *myFileWatcher;
 
-    JBNavigableFileMap<QList<WatchRequest>> myRecursiveWatchRoots;
-    JBNavigableFileMap<QList<WatchRequest>> myFlatWatchRoots;
+    JBNavigableFileMap<QSet<WatchRequest>> myRecursiveWatchRoots;
+    JBNavigableFileMap<QSet<WatchRequest>> myFlatWatchRoots;
     JBNavigableFileSet myOptimizedRecursiveWatchRoots;
     JBNavigableFileMap<WatchRequest> mySymlinksByPath;
     QMap<int, WatchRequest> mySymlinksById;
@@ -49,7 +51,7 @@ private:
 
     void updateWatchRoots(QSet<QString> rootsToAdd, QSet<WatchRequest> requestsToRemove,
                           QSet<WatchRequest> &result,
-                          JBNavigableFileMap<QList<WatchRequest>> &roots, bool recursiveWatchRoots);
+                          JBNavigableFileMap<QSet<WatchRequest>> &roots, bool recursiveWatchRoots);
 
     QString prepareWatchRoot(QString root);
 

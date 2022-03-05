@@ -1,7 +1,7 @@
 #include "JBLocalFileSystem.h"
 #include "JBNativeFileWatcher.h"
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QDebug>
 #include <QThread>
 #include <QTimerEvent>
@@ -53,8 +53,15 @@ QList<JBLocalFileSystem::WatchRequest>
     if (myDisposed) {
         return {};
     }
-    return myWatchRootsManager->replaceWatchedRoots(watchRequestsToRemove, recursiveRootsToAdd,
-                                                    flatRootsToAdd);
+    return JBFileWatcherUtils::SetToList(myWatchRootsManager->replaceWatchedRoots(
+        watchRequestsToRemove, recursiveRootsToAdd, flatRootsToAdd));
+}
+
+QList<JBLocalFileSystem::WatchRequest> JBLocalFileSystem::currentWatchedRoots() const {
+    if (myDisposed) {
+        return {};
+    }
+    return JBFileWatcherUtils::SetToList(myWatchRootsManager->currentWatchRequests());
 }
 
 bool JBLocalFileSystem::storeRefreshStatusToFiles() {
@@ -88,7 +95,8 @@ void JBLocalFileSystem::markRecursiveDirsDirty(const QSet<QString> &dirtyPaths) 
 }
 
 void JBLocalFileSystem::markSuspiciousFilesDirty(const QSet<QString> &paths) {
-    // storeRefreshStatusToFiles();
+    Q_UNUSED(paths)
+    storeRefreshStatusToFiles();
 }
 
 void JBLocalFileSystem::timerEvent(QTimerEvent *event) {
@@ -98,6 +106,7 @@ void JBLocalFileSystem::timerEvent(QTimerEvent *event) {
 }
 
 JBLocalFileSystem *JBLocalFileSystem::self = nullptr;
+
 JBLocalFileSystem *JBLocalFileSystem::instance() {
     if (!self) {
         qDebug() << "Auto create JetBrains Local File System instance.";

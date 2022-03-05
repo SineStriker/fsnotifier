@@ -23,6 +23,8 @@ public:
                                             const QStringList &recursiveRootsToAdd,
                                             const QStringList &flatRootsToAdd);
 
+    QList<WatchRequest> currentWatchedRoots() const;
+
 private:
     JBFileWatcher *myWatcher;
     JBWatchRootsManager *myWatchRootsManager;

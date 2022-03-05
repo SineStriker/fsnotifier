@@ -5,17 +5,7 @@
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
-    fs = JBFS;
-    //    fs = new JB::LocalFileSystem(this);
-    //    fs = new JBLocalFileSystem(this);
-
-    //    set.insert("C:/Windows");
-    //    set.insert("E:/test1");
-
-    //    qDebug() << set.size();
-    //    qDebug() << JBFileWatcherUtils::StringUtil::compare('C', 'D', true);
-    //    qDebug() << JBFileWatcherUtils::OSAgnosticPathUtil::COMPARATOR_compare("C:/Windows",
-    //                                                                           "E:/test1");
+    fs = new JB::LocalFileSystem(this);
 
     startButton = new QPushButton("Start", this);
     stopButton = new QPushButton("Stop", this);
@@ -23,21 +13,40 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     request1Button = new QPushButton("Req1", this);
     request2Button = new QPushButton("Req2", this);
 
-    //    JBNavigableFileSet set;
-
     connect(startButton, &QPushButton::clicked, this, [&]() { fs->start(); });
     connect(stopButton, &QPushButton::clicked, this, [&]() { fs->dispose(); });
 
+    Q_UNUSED(requests)
+
     connect(request1Button, &QPushButton::clicked, this, [&]() { //
-        requests = fs->replaceWatchedRoots(requests, {}, {"C:/Windows/system32"});
+        fs->replaceWatchedRoots({}, {}, {"E:/test1"});
         qDebug() << " ";
-        qDebug() << requests;
+        qDebug() << fs->currentWatchedRoots();
         qDebug() << " ";
     });
     connect(request2Button, &QPushButton::clicked, this, [&]() { //
-        requests = fs->replaceWatchedRoots(requests, {"C:/Windows"}, {});
+        fs->replaceWatchedRoots({}, {"C:/Windows"}, {});
         qDebug() << " ";
-        qDebug() << requests;
+        qDebug() << fs->currentWatchedRoots();
+        qDebug() << " ";
+    });
+
+    connect(fs, &JB::LocalFileSystem::pathsDirty, [](const QStringList &dirtyPaths) {
+        qDebug() << "[Paths dirty]";
+        std::for_each(dirtyPaths.begin(), dirtyPaths.end(),
+                      [](const QString &path) { qDebug() << path; });
+        qDebug() << " ";
+    });
+    connect(fs, &JB::LocalFileSystem::flatDirsDirty, [](const QStringList &dirtyPaths) {
+        qDebug() << "[Non-recursive dirs dirty]";
+        std::for_each(dirtyPaths.begin(), dirtyPaths.end(),
+                      [](const QString &path) { qDebug() << path; });
+        qDebug() << " ";
+    });
+    connect(fs, &JB::LocalFileSystem::recursiveDirsDirty, [](const QStringList &dirtyPaths) {
+        qDebug() << "[Recursive dirs dirty]";
+        std::for_each(dirtyPaths.begin(), dirtyPaths.end(),
+                      [](const QString &path) { qDebug() << path; });
         qDebug() << " ";
     });
 

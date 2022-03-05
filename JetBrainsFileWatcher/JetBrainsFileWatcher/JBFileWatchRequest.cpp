@@ -25,6 +25,10 @@ bool JBSymlinkData::hasValidTarget() const {
     return !m_target.isEmpty();
 }
 
+bool JBSymlinkData::operator==(const JBSymlinkData &other) const {
+    return m_id == other.m_id && m_path == other.m_path && m_target == other.m_target;
+}
+
 QDebug operator<<(QDebug debug, const JBSymlinkData &data) {
     debug.noquote().nospace() << data.toString();
     return debug;
@@ -33,8 +37,8 @@ QDebug operator<<(QDebug debug, const JBSymlinkData &data) {
 JBFileWatchRequest::JBFileWatchRequest() : path(""), recursive(false), symlink(false) {
 }
 
-JBFileWatchRequest::JBFileWatchRequest(const QString &root, bool recursive, bool symlink)
-    : path(root), recursive(recursive), symlink(symlink) {
+JBFileWatchRequest::JBFileWatchRequest(const QString &root, bool recursive)
+    : path(root), recursive(recursive), symlink(false) {
 }
 
 JBFileWatchRequest::JBFileWatchRequest(const JBSymlinkData &data, bool recursive)
@@ -72,10 +76,6 @@ JBSymlinkData JBFileWatchRequest::symlinkData() const {
     return data;
 }
 
-void JBFileWatchRequest::setSymlinkData(const JBSymlinkData &data) {
-    this->data = data;
-}
-
 QString JBFileWatchRequest::orgPath() const {
     return data.path();
 }
@@ -87,6 +87,16 @@ QDebug operator<<(QDebug debug, const JBFileWatchRequest &request) {
     return debug;
 }
 
+#define Q_N(A) QString::number(A)
+
 uint qHash(const JBFileWatchRequest &key, uint seed) {
-    return qHash(key.orgPath() + "|" + QString::number(key.symlinkData().id()), seed);
+    if (key.symlink) {
+        return qHash(Q_N(key.recursive) + "|" + Q_N(key.data.id()) + "|" + key.data.path() + "|" +
+                         key.data.target(),
+                     seed);
+    } else {
+        return qHash(Q_N(key.recursive) + "|" + key.path);
+    }
 }
+
+#undef Q_N

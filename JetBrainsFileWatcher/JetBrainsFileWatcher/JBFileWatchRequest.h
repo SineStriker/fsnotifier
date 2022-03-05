@@ -21,6 +21,8 @@ public:
         return "SymlinkData{" + QString::number(m_id) + ", " + m_path + " -> " + m_target + '}';
     }
 
+    bool operator==(const JBSymlinkData &other) const;
+
 private:
     int m_id;
     QString m_path;
@@ -33,7 +35,7 @@ public:
 class JBFileWatchRequest {
 public:
     JBFileWatchRequest();
-    JBFileWatchRequest(const QString &root, bool recursive, bool symlink = false);
+    JBFileWatchRequest(const QString &root, bool recursive);
     JBFileWatchRequest(const JBSymlinkData &data, bool recursive);
     ~JBFileWatchRequest();
 
@@ -46,15 +48,12 @@ public:
     bool setRegistered(bool registered);
 
     JBSymlinkData symlinkData() const;
-    void setSymlinkData(const JBSymlinkData &data);
 
     QString orgPath() const;
 
     inline bool operator==(const JBFileWatchRequest &other) const {
-        return (path == other.path) && (recursive == other.recursive) &&
-               (symlink == other.symlink) &&
-               ((symlink && registered == other.registered) || !symlink) &&
-               (data.id() == other.data.id());
+        return (!symlink && path == other.path && recursive == other.recursive) ||
+               (symlink && registered == other.registered && data == other.data);
     }
 
 protected:

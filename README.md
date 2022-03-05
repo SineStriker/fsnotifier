@@ -2,7 +2,9 @@
 
 ## Brief
 
-C++ cross-platform file system watcher library using JetBrains fsnotifier.
+Qt/C++ cross-platform file system watcher library using JetBrains fsnotifier.
+
+If you're using Qt and QFileSystemWatcher can't meet your demands, try this one.
 
 ## JetBrains IntelliJ IDEA
 
@@ -31,9 +33,6 @@ int main(int argc, char *argv[]) {
     // Make sure to place the fsnotifier executable in the working directory
     JB::LocalFileSystem fs;
     fs.start();
-    
-    // Current requests
-    QList<JB::WatchRequest> requests;
 
     // Print dirty paths
     QObject::connect(&fs, &JB::LocalFileSystem::pathsDirty, [](const QStringList &dirtyPaths) {
@@ -58,8 +57,10 @@ int main(int argc, char *argv[]) {
         qDebug() << " ";
     });
     
+    QList<JB::WatchRequest> requests;
+
     // Watch "C:/foo" recursively and "D:/bar" non-recursively
-    requests = fs.replaceWatchedRoots(requests, {"C:/foo"}, {"D:/bar"});
+    requests = fs.replaceWatchedRoots({}, {"C:/foo"}, {"D:/bar"});
 
     return a.exec();
 }

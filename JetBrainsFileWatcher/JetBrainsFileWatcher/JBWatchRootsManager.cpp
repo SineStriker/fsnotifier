@@ -14,7 +14,7 @@ JBWatchRootsManager::JBWatchRootsManager(JBFileWatcher *watcher, QObject *parent
 JBWatchRootsManager::~JBWatchRootsManager() {
 }
 
-QList<JBWatchRootsManager::WatchRequest>
+QSet<JBWatchRootsManager::WatchRequest>
     JBWatchRootsManager::replaceWatchedRoots(const QList<WatchRequest> &requestsToRemove,
                                              const QStringList &recursiveRootsToAdd,
                                              const QStringList &flatRootsToAdd) {
@@ -34,7 +34,18 @@ QList<JBWatchRootsManager::WatchRequest>
         updateFileWatcher();
     }
 
-    return SetToList(result);
+    return result;
+}
+
+QSet<JBWatchRootsManager::WatchRequest> JBWatchRootsManager::currentWatchRequests() const {
+    QSet<WatchRequest> res;
+    for (auto it = myRecursiveWatchRoots.begin(); it != myRecursiveWatchRoots.end(); ++it) {
+        res.unite(it->second);
+    }
+    for (auto it = myFlatWatchRoots.begin(); it != myFlatWatchRoots.end(); ++it) {
+        res.unite(it->second);
+    }
+    return res;
 }
 
 void JBWatchRootsManager::clear() {
@@ -47,7 +58,6 @@ void JBWatchRootsManager::clear() {
 
 void JBWatchRootsManager::updateSymlink(int fileId, const QString &linkPath,
                                         const QString &linkTarget) {
-
     auto it = mySymlinksById.find(fileId);
     if (it != mySymlinksById.end()) {
         const auto &request = it.value();
@@ -66,8 +76,8 @@ void JBWatchRootsManager::updateSymlink(int fileId, const QString &linkPath,
     JBSymlinkData data(fileId, linkPath, linkTarget);
     auto it2 = mySymlinksByPath.find(linkPath);
     if (it2 != mySymlinksByPath.end()) {
-        jbDebug() << "Path conflict. Existing symlink: " + it2->second.symlinkData().toString() +
-                        " vs. new symlink: " + data.toString();
+        jbWarning() << "Path conflict. Existing symlink: " + it2->second.symlinkData().toString() +
+                           " vs. new symlink: " + data.toString();
         return;
     }
 
@@ -132,7 +142,7 @@ JBCanonicalPathMap JBWatchRootsManager::createCanonicalPathMap(
 void JBWatchRootsManager::updateWatchRoots(QSet<QString> rootsToAdd,
                                            QSet<WatchRequest> requestsToRemove,
                                            QSet<WatchRequest> &result,
-                                           JBNavigableFileMap<QList<WatchRequest>> &roots,
+                                           JBNavigableFileMap<QSet<WatchRequest>> &roots,
                                            bool recursiveWatchRoots) {
     QList<WatchRequest> watchSymlinkRequestsToAdd;
     for (const QString &root : rootsToAdd) {
@@ -143,7 +153,7 @@ void JBWatchRootsManager::updateWatchRoots(QSet<QString> rootsToAdd,
 
         // add to member roots
         auto it = roots.computeIfAbsent(watchRoot, {});
-        QList<WatchRequest> &requests = it->second; // executory requests
+        QSet<WatchRequest> &requests = it->second; // executory requests
         bool foundSameRequest = false;
         if (!requestsToRemove.isEmpty()) {
             for (const WatchRequest &currentRequest : requests) {
@@ -157,7 +167,7 @@ void JBWatchRootsManager::updateWatchRoots(QSet<QString> rootsToAdd,
         // if found,
         if (!foundSameRequest) {
             WatchRequest newRequest(watchRoot, recursiveWatchRoots);
-            requests.append(newRequest);
+            requests.insert(newRequest);
             result.insert(newRequest);
             if (recursiveWatchRoots) {
                 collectSymlinkRequests(newRequest, watchSymlinkRequestsToAdd);
@@ -192,7 +202,7 @@ QString JBWatchRootsManager::prepareWatchRoot(QString root) {
         root = root.mid(0, index);
     }
     if (QDir::isRelativePath(root)) {
-        jbDebug() << "Watch roots should be absolute";
+        jbWarning() << "Watch roots should be absolute";
         return "";
     }
     return QDir::toNativeSeparators(root);
@@ -206,8 +216,8 @@ void JBWatchRootsManager::removeWatchRequest(JBWatchRootsManager::WatchRequest r
     if (it == roots.end()) {
         return;
     }
-    QList<WatchRequest> &requests = it->second;
-    requests.removeOne(request);
+    QSet<WatchRequest> &requests = it->second;
+    requests.remove(request);
     if (requests.isEmpty()) {
         roots.remove(watchRoot);
         if (request.isRecursive()) {
@@ -239,9 +249,9 @@ void JBWatchRootsManager::addWatchSymlinkRequest(JBWatchRootsManager::WatchReque
     if (it == roots.end()) {
         it = roots.insert(watchRoot, {}).first;
     }
-    QList<WatchRequest> &requests = it->second;
+    QSet<WatchRequest> &requests = it->second;
 
-    requests.append(request);
+    requests.insert(request);
     if (requests.size() == 1 &&
         !WatchRootsUtil::isCoveredRecursively(myOptimizedRecursiveWatchRoots, watchRoot)) {
         if (request.isRecursive()) {

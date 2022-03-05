@@ -8,7 +8,8 @@
 
 #include "JBNavigableFileContainers.h"
 
-//#define JB_NO_DEBUG_OUTPUT
+// #define JB_NO_DEBUG_OUTPUT
+// #define JB_NO_WARNING_OUTPUT
 
 namespace JBFileWatcherUtils {
 
@@ -163,10 +164,16 @@ namespace JBFileWatcherUtils {
 }; // namespace JBFileWatcherUtils
 
 #define jbDebug qDebug
+#define jbWarning qDebug
 
 #if defined(JB_NO_DEBUG_OUTPUT)
 #undef jbDebug
 #define jbDebug QT_NO_QDEBUG_MACRO
+#endif
+
+#if defined(JB_NO_WARNING_OUTPUT)
+#undef jbWarning
+#define jbWarning QT_NO_QDEBUG_MACRO
 #endif
 
 #endif // JBFILEWATCHERUTILS_H
