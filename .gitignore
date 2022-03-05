@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+build*
+*.pro.user*
+.DS_Store
+*/.DS_Store
+Libs/*
+*.lnk
+cmake-*
