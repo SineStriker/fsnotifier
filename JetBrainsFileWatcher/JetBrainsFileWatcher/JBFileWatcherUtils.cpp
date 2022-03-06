@@ -27,9 +27,9 @@ QString JBFileWatcherUtils::MessageToFailureReasonString(const QString &message)
 
 bool JBFileWatcherUtils::SystemInfo::isFileSystemCaseSensitive() {
 #ifdef Q_OS_WINDOWS
-    return true;
-#else
     return false;
+#else
+    return true;
 #endif
 }
 

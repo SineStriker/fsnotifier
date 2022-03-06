@@ -189,8 +189,8 @@ public:
         return this->empty();
     }
 
-    void remove(K key) {
-        this->erase(key);
+    size_type remove(K key) {
+        return this->erase(key);
     }
 
     std::pair<iterator, bool> insert(const K &key, const V &val) {

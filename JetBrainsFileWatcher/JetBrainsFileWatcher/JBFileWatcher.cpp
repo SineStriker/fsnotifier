@@ -78,12 +78,11 @@ bool JBFileWatcher::belongsToWatchRoots(const QString &reportedPath, bool isFile
     return myPathMap.belongsToWatchRoots(reportedPath, isFile);
 }
 
-void JBFileWatcher::setWatchRoots(JBCanonicalPathMap pathMap) {
+void JBFileWatcher::setWatchRoots(const JBCanonicalPathMap &pathMap) {
     myPathMap = pathMap;
     myManualWatchRoots.clear();
 
-    auto roots = pathMap.getCanonicalWatchRoots();
-
+    auto roots = myPathMap.getCanonicalWatchRoots();
     const auto &watchers = JBNativeFileWatcher::watchers();
     for (auto it = watchers.begin(); it != watchers.end(); ++it) {
         auto watcher = *it;

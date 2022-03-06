@@ -13,6 +13,7 @@ struct JBFilePath_Comparator {
 class JBNavigableFileSet : public JBNavigableSet<QString, JBFilePath_Comparator> {
 public:
     JBNavigableFileSet &operator=(const QSet<QString> &set) {
+        this->clear();
         for (auto it = set.begin(); it != set.end(); ++it) {
             this->insert(*it);
         }
@@ -20,6 +21,7 @@ public:
     }
 
     JBNavigableFileSet &operator=(QSet<QString> &&set) {
+        this->clear();
         for (auto it = set.begin(); it != set.end(); ++it) {
             this->insert(*it);
         }
@@ -31,6 +33,7 @@ template <class T>
 class JBNavigableFileMap : public JBNavigableMap<QString, T, JBFilePath_Comparator> {
 public:
     JBNavigableFileMap &operator=(const QMap<QString, T> &map) {
+        this->clear();
         for (auto it = map.begin(); it != map.end(); ++it) {
             this->insert(it.key(), it.value());
         }
@@ -38,6 +41,7 @@ public:
     }
 
     JBNavigableFileMap &operator=(QMap<QString, T> &&map) {
+        this->clear();
         for (auto it = map.begin(); it != map.end(); ++it) {
             this->insert(it.key(), it.value());
         }

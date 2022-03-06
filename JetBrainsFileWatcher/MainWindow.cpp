@@ -19,35 +19,28 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     Q_UNUSED(requests)
 
     connect(request1Button, &QPushButton::clicked, this, [&]() { //
-        fs->replaceWatchedRoots({}, {}, {"E:/test1"});
-        qDebug() << " ";
+        fs->replaceWatchedRoots({}, {"E:/test1/123"}, {});
         qDebug() << fs->currentWatchedRoots();
-        qDebug() << " ";
     });
     connect(request2Button, &QPushButton::clicked, this, [&]() { //
-        fs->replaceWatchedRoots({}, {"C:/Windows"}, {});
-        qDebug() << " ";
+        fs->replaceWatchedRoots(fs->currentWatchedRoots(), {}, {});
         qDebug() << fs->currentWatchedRoots();
-        qDebug() << " ";
     });
 
     connect(fs, &JB::LocalFileSystem::pathsDirty, [](const QStringList &dirtyPaths) {
         qDebug() << "[Paths dirty]";
         std::for_each(dirtyPaths.begin(), dirtyPaths.end(),
                       [](const QString &path) { qDebug() << path; });
-        qDebug() << " ";
     });
     connect(fs, &JB::LocalFileSystem::flatDirsDirty, [](const QStringList &dirtyPaths) {
         qDebug() << "[Non-recursive dirs dirty]";
         std::for_each(dirtyPaths.begin(), dirtyPaths.end(),
                       [](const QString &path) { qDebug() << path; });
-        qDebug() << " ";
     });
-    connect(fs, &JB::LocalFileSystem::recursiveDirsDirty, [](const QStringList &dirtyPaths) {
-        qDebug() << "[Recursive dirs dirty]";
+    connect(fs, &JB::LocalFileSystem::recursivePathsDirty, [](const QStringList &dirtyPaths) {
+        qDebug() << "[Recursive paths dirty]";
         std::for_each(dirtyPaths.begin(), dirtyPaths.end(),
                       [](const QString &path) { qDebug() << path; });
-        qDebug() << " ";
     });
 
     QWidget *w = new QWidget();

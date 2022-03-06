@@ -1,8 +1,7 @@
 #ifndef JBFILEWATCHERDIRTYPATHS_H
 #define JBFILEWATCHERDIRTYPATHS_H
 
-#include <QSet>
-#include <QString>
+#include "JBNavigableFileContainers.h"
 
 class JBFileWatcherDirtyPaths {
 public:
@@ -15,10 +14,16 @@ public:
 
     void addDirtyPath(const QString &path);
     void addDirtyPathRecursive(const QString &path);
+    void addDirtyDirs(const QSet<QString> &paths);
 
-    QSet<QString> dirtyPaths;
-    QSet<QString> dirtyPathsRecursive;
-    QSet<QString> dirtyDirectories;
+    QStringList dirtyPaths() const;
+    QStringList dirtyPathsRecursive() const;
+    QStringList dirtyDirectories() const;
+
+protected:
+    JBNavigableFileSet m_dirtyPaths;
+    JBNavigableFileSet m_dirtyPathsRecursive;
+    JBNavigableFileSet m_dirtyDirectories;
 };
 
 #endif // JBFILEWATCHERDIRTYPATHS_H

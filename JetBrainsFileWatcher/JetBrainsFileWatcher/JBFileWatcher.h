@@ -30,7 +30,7 @@ public:
 
     bool belongsToWatchRoots(const QString &reportedPath, bool isFile) const;
 
-    void setWatchRoots(JBCanonicalPathMap pathMap);
+    void setWatchRoots(const JBCanonicalPathMap &pathMap);
 
     void notifyOnFailure(const QString &reason);
 

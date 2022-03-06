@@ -211,8 +211,8 @@ public:
         return this->empty();
     }
 
-    void remove(T key) {
-        this->erase(key);
+    size_type remove(T key) {
+        return this->erase(key);
     }
 
     QSet<T> toQSet() const {

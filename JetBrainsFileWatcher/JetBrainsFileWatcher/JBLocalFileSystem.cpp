@@ -67,34 +67,35 @@ QList<JBLocalFileSystem::WatchRequest> JBLocalFileSystem::currentWatchedRoots() 
 bool JBLocalFileSystem::storeRefreshStatusToFiles() {
     if (myWatcher->isOperational()) {
         auto dirtyPaths = myWatcher->getDirtyPaths();
-        markPathsDirty(dirtyPaths.dirtyPaths);
-        markFlatDirsDirty(dirtyPaths.dirtyDirectories);
-        markRecursiveDirsDirty(dirtyPaths.dirtyPathsRecursive);
-        return !dirtyPaths.dirtyPaths.isEmpty() || !dirtyPaths.dirtyDirectories.isEmpty() ||
-               !dirtyPaths.dirtyPathsRecursive.isEmpty();
+
+        markPathsDirty(dirtyPaths.dirtyPaths());
+        markFlatDirsDirty(dirtyPaths.dirtyDirectories());
+        markRecursiveDirsDirty(dirtyPaths.dirtyPathsRecursive());
+
+        return !dirtyPaths.isEmpty();
     }
     return false;
 }
 
-void JBLocalFileSystem::markPathsDirty(const QSet<QString> &dirtyPaths) {
+void JBLocalFileSystem::markPathsDirty(const QStringList &dirtyPaths) {
     if (!dirtyPaths.isEmpty()) {
-        emit pathsDirty(JBFileWatcherUtils::SetToList(dirtyPaths));
+        emit pathsDirty(dirtyPaths);
     }
 }
 
-void JBLocalFileSystem::markFlatDirsDirty(const QSet<QString> &dirtyPaths) {
+void JBLocalFileSystem::markFlatDirsDirty(const QStringList &dirtyPaths) {
     if (!dirtyPaths.isEmpty()) {
-        emit flatDirsDirty(JBFileWatcherUtils::SetToList(dirtyPaths));
+        emit flatDirsDirty(dirtyPaths);
     }
 }
 
-void JBLocalFileSystem::markRecursiveDirsDirty(const QSet<QString> &dirtyPaths) {
+void JBLocalFileSystem::markRecursiveDirsDirty(const QStringList &dirtyPaths) {
     if (!dirtyPaths.isEmpty()) {
-        emit recursiveDirsDirty(JBFileWatcherUtils::SetToList(dirtyPaths));
+        emit recursivePathsDirty(dirtyPaths);
     }
 }
 
-void JBLocalFileSystem::markSuspiciousFilesDirty(const QSet<QString> &paths) {
+void JBLocalFileSystem::markSuspiciousFilesDirty(const QStringList &paths) {
     Q_UNUSED(paths)
     storeRefreshStatusToFiles();
 }

@@ -22,7 +22,6 @@ public:
     QList<WatchRequest> replaceWatchedRoots(const QList<WatchRequest> &watchRequestsToRemove,
                                             const QStringList &recursiveRootsToAdd,
                                             const QStringList &flatRootsToAdd);
-
     QList<WatchRequest> currentWatchedRoots() const;
 
 private:
@@ -35,12 +34,12 @@ private:
     bool storeRefreshStatusToFiles();
 
 private:
-    void markPathsDirty(const QSet<QString> &dirtyPaths);
-    void markFlatDirsDirty(const QSet<QString> &dirtyPaths);
-    void markRecursiveDirsDirty(const QSet<QString> &dirtyPaths);
+    void markPathsDirty(const QStringList &dirtyPaths);
+    void markFlatDirsDirty(const QStringList &dirtyPaths);
+    void markRecursiveDirsDirty(const QStringList &dirtyPaths);
 
 public:
-    void markSuspiciousFilesDirty(const QSet<QString> &paths);
+    void markSuspiciousFilesDirty(const QStringList &paths);
 
 protected:
     void timerEvent(QTimerEvent *event) override;
@@ -48,6 +47,7 @@ protected:
     // Singleton
 public:
     static JBLocalFileSystem *instance();
+    static JBLocalFileSystem *destruct();
 
 private:
     static JBLocalFileSystem *self;
@@ -55,7 +55,7 @@ private:
 signals:
     void pathsDirty(const QStringList &dirtyPaths);
     void flatDirsDirty(const QStringList &dirtyPaths);
-    void recursiveDirsDirty(const QStringList &dirtyPaths);
+    void recursivePathsDirty(const QStringList &dirtyPaths);
 };
 
 #endif // JBLOCALFILESYSTEM_H

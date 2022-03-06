@@ -21,7 +21,12 @@ JBFileWatcherAdvancedNSink::DirtyPaths JBFileWatcherAdvancedNSink::getDirtyPaths
         myDirtyPaths.clear();
     }
 
-    // PluggableFileWatcher.EP_NAME.forEachExtensionSafe(watcher->watcher.resetChangedPaths());
+    const auto &watchers = JBNativeFileWatcher::watchers();
+    for (auto it = watchers.begin(); it != watchers.end(); ++it) {
+        auto watcher = *it;
+        watcher->resetChangedPaths();
+    }
+
     return dirtyPaths;
 }
 
@@ -65,7 +70,7 @@ void JBFileWatcherAdvancedNSink::notifyPathCreatedOrDeleted(const QString &path)
 void JBFileWatcherAdvancedNSink::notifyDirtyDirectory(const QString &path) {
     auto paths = myWatcher->myPathMap.mapToOriginalWatchRoots(path, false);
     if (!paths.isEmpty()) {
-        myDirtyPaths.dirtyDirectories.unite(paths);
+        myDirtyPaths.addDirtyDirs(paths);
     }
     notifyOnEvent(path);
 }

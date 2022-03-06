@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
         });
         qDebug() << " ";
     });
-    QObject::connect(&fs, &JB::LocalFileSystem::recursiveDirsDirty, [](const QStringList &dirtyPaths) {
-        qDebug() << "[Recursive dirs dirty]";
+    QObject::connect(&fs, &JB::LocalFileSystem::recursivePathsDirty, [](const QStringList &dirtyPaths) {
+        qDebug() << "[Recursive paths dirty]";
         std::for_each(dirtyPaths.begin(), dirtyPaths.end(), [](const QString &path) {
             qDebug() << path;
         });
