@@ -19,28 +19,12 @@ public:
         }
         return *this;
     }
-
-    JBNavigableFileSet &operator=(QSet<QString> &&set) {
-        this->clear();
-        for (auto it = set.begin(); it != set.end(); ++it) {
-            this->insert(*it);
-        }
-        return *this;
-    }
 };
 
 template <class T>
 class JBNavigableFileMap : public JBNavigableMap<QString, T, JBFilePath_Comparator> {
 public:
     JBNavigableFileMap &operator=(const QMap<QString, T> &map) {
-        this->clear();
-        for (auto it = map.begin(); it != map.end(); ++it) {
-            this->insert(it.key(), it.value());
-        }
-        return *this;
-    }
-
-    JBNavigableFileMap &operator=(QMap<QString, T> &&map) {
         this->clear();
         for (auto it = map.begin(); it != map.end(); ++it) {
             this->insert(it.key(), it.value());

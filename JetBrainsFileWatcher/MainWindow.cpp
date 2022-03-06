@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     Q_UNUSED(requests)
 
     connect(request1Button, &QPushButton::clicked, this, [&]() { //
-        fs->replaceWatchedRoots({}, {"E:/test1/123"}, {});
+        fs->replaceWatchedRoots({}, {"C:/Windows"}, {});
     });
     connect(request2Button, &QPushButton::clicked, this, [&]() { //
         fs->replaceWatchedRoots(fs->currentWatchedRoots(), {}, {});
