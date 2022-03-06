@@ -6,6 +6,8 @@
 
 #define JBFS JBLocalFileSystem::instance()
 
+class JBLocalFileSystemTimer;
+
 class JBLocalFileSystem : public QObject {
     Q_OBJECT
 public:
@@ -18,31 +20,28 @@ public:
     void start();
     void dispose();
 
+    bool disposed() const;
+
     JBFileWatcher *fileWatcher() const;
     QList<WatchRequest> replaceWatchedRoots(const QList<WatchRequest> &watchRequestsToRemove,
                                             const QStringList &recursiveRootsToAdd,
                                             const QStringList &flatRootsToAdd);
     QList<WatchRequest> currentWatchedRoots() const;
 
+    void markSuspiciousFilesDirty(const QStringList &paths);
+
 private:
     JBFileWatcher *myWatcher;
     JBWatchRootsManager *myWatchRootsManager;
-
-    int myAfterMarkDirtyCallback;
     bool myDisposed;
+
+    QScopedPointer<JBLocalFileSystemTimer> myTimer;
 
     bool storeRefreshStatusToFiles();
 
-private:
-    void markPathsDirty(const QStringList &dirtyPaths);
-    void markFlatDirsDirty(const QStringList &dirtyPaths);
-    void markRecursiveDirsDirty(const QStringList &dirtyPaths);
-
-public:
-    void markSuspiciousFilesDirty(const QStringList &paths);
-
-protected:
-    void timerEvent(QTimerEvent *event) override;
+    // Slot
+    void handleAfterMarkDirtyCallback(const QStringList &paths, const QStringList &flatDirs,
+                                      const QStringList &recursiveDirs);
 
     // Singleton
 public:
@@ -52,9 +51,9 @@ private:
     static JBLocalFileSystem *self;
 
 signals:
-    void pathsDirty(const QStringList &dirtyPaths);
-    void flatDirsDirty(const QStringList &dirtyPaths);
-    void recursivePathsDirty(const QStringList &dirtyPaths);
+    void pathsDirty(const QStringList &paths);
+    void flatDirsDirty(const QStringList &paths);
+    void recursivePathsDirty(const QStringList &paths);
 };
 
 #endif // JBLOCALFILESYSTEM_H

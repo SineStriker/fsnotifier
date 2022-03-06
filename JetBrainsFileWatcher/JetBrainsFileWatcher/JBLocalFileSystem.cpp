@@ -1,4 +1,5 @@
 #include "JBLocalFileSystem.h"
+#include "JBLocalFileSystemTimer.h"
 #include "JBNativeFileWatcher.h"
 
 #include <QCoreApplication>
@@ -6,19 +7,26 @@
 #include <QThread>
 #include <QTimerEvent>
 
-JBLocalFileSystem::JBLocalFileSystem(QObject *parent) : QObject(parent) {
+JBLocalFileSystem::JBLocalFileSystem(QObject *parent)
+    : QObject(parent), myTimer(new JBLocalFileSystemTimer(this)) {
     Q_ASSERT(!self);
     self = this;
 
     jbDebug() << "[Local FS] Local File System init";
 
     myDisposed = true;
-    myAfterMarkDirtyCallback = -1;
 
     myWatcher = new JBFileWatcher(this);
     myWatchRootsManager = new JBWatchRootsManager(myWatcher, this);
 
     JBNativeFileWatcher::createWatchers(1);
+
+    // Callback
+    connect(myTimer.data(), &JBLocalFileSystemTimer::afterMarkDirtyCallback, this,
+            &JBLocalFileSystem::handleAfterMarkDirtyCallback);
+
+    // Stop timer before app quit
+    connect(qApp, &QCoreApplication::aboutToQuit, this, &JBLocalFileSystem::dispose);
 }
 
 JBLocalFileSystem::~JBLocalFileSystem() {
@@ -33,19 +41,26 @@ JBLocalFileSystem::~JBLocalFileSystem() {
 }
 
 void JBLocalFileSystem::start() {
-    myWatchRootsManager->clear();
-    myDisposed = false;
+    if (myDisposed) {
+        myWatchRootsManager->clear();
+        myDisposed = false;
 
-    myWatcher->start();
-    myAfterMarkDirtyCallback = startTimer(500);
+        myWatcher->start();
+        myTimer->start();
+    }
 }
 
 void JBLocalFileSystem::dispose() {
-    killTimer(myAfterMarkDirtyCallback);
-    myAfterMarkDirtyCallback = -1;
+    if (!myDisposed) {
+        myTimer->stop();
 
-    myWatcher->dispose();
-    myDisposed = true;
+        myWatcher->dispose();
+        myDisposed = true;
+    }
+}
+
+bool JBLocalFileSystem::disposed() const {
+    return myDisposed;
 }
 
 JBFileWatcher *JBLocalFileSystem::fileWatcher() const {
@@ -70,46 +85,21 @@ QList<JBLocalFileSystem::WatchRequest> JBLocalFileSystem::currentWatchedRoots() 
     return JBFileWatcherUtils::SetToList(myWatchRootsManager->currentWatchRequests());
 }
 
-bool JBLocalFileSystem::storeRefreshStatusToFiles() {
-    if (myWatcher->isOperational()) {
-        auto dirtyPaths = myWatcher->getDirtyPaths();
-
-        markPathsDirty(dirtyPaths.dirtyPaths());
-        markFlatDirsDirty(dirtyPaths.dirtyDirectories());
-        markRecursiveDirsDirty(dirtyPaths.dirtyPathsRecursive());
-
-        return !dirtyPaths.isEmpty();
-    }
-    return false;
-}
-
-void JBLocalFileSystem::markPathsDirty(const QStringList &dirtyPaths) {
-    if (!dirtyPaths.isEmpty()) {
-        emit pathsDirty(dirtyPaths);
-    }
-}
-
-void JBLocalFileSystem::markFlatDirsDirty(const QStringList &dirtyPaths) {
-    if (!dirtyPaths.isEmpty()) {
-        emit flatDirsDirty(dirtyPaths);
-    }
-}
-
-void JBLocalFileSystem::markRecursiveDirsDirty(const QStringList &dirtyPaths) {
-    if (!dirtyPaths.isEmpty()) {
-        emit recursivePathsDirty(dirtyPaths);
-    }
-}
-
 void JBLocalFileSystem::markSuspiciousFilesDirty(const QStringList &paths) {
     Q_UNUSED(paths)
     storeRefreshStatusToFiles();
 }
 
-void JBLocalFileSystem::timerEvent(QTimerEvent *event) {
-    if (event->timerId() == myAfterMarkDirtyCallback) {
-        storeRefreshStatusToFiles();
-    }
+bool JBLocalFileSystem::storeRefreshStatusToFiles() {
+    return myTimer->storeRefreshStatusToFiles();
+}
+
+void JBLocalFileSystem::handleAfterMarkDirtyCallback(const QStringList &paths,
+                                                     const QStringList &flatDirs,
+                                                     const QStringList &recursiveDirs) {
+    paths.isEmpty() ? void() : emit pathsDirty(paths);
+    flatDirs.isEmpty() ? void() : emit flatDirsDirty(flatDirs);
+    recursiveDirs.isEmpty() ? void() : emit recursivePathsDirty(recursiveDirs);
 }
 
 JBLocalFileSystem *JBLocalFileSystem::self = nullptr;

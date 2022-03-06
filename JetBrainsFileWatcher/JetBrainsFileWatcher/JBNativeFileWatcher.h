@@ -1,6 +1,7 @@
 #ifndef JBNATIVEFILEWATCHER_H
 #define JBNATIVEFILEWATCHER_H
 
+#include <QMutex>
 #include <QObject>
 #include <QPointer>
 #include <QProcess>
@@ -38,6 +39,8 @@ private:
     const QString ROOTS_COMMAND = "ROOTS";
     const QString EXIT_COMMAND = "EXIT";
     const int MAX_PROCESS_LAUNCH_ATTEMPT_COUNT = 10;
+
+    QScopedPointer<QMutex> myLastChangedPathsLock;
 
 public:
     void initialize(JBFileWatcherNotificationSink *sink);

@@ -1,6 +1,7 @@
 #ifndef JBWATCHROOTSMANAGER_H
 #define JBWATCHROOTSMANAGER_H
 
+#include <QMutex>
 #include <QObject>
 
 #include "JBCanonicalPathMap.h"
@@ -21,8 +22,8 @@ public:
 
 public:
     QSet<WatchRequest> replaceWatchedRoots(const QList<WatchRequest> &requestsToRemove,
-                                            const QStringList &recursiveRootsToAdd,
-                                            const QStringList &flatRootsToAdd);
+                                           const QStringList &recursiveRootsToAdd,
+                                           const QStringList &flatRootsToAdd);
 
     QSet<WatchRequest> currentWatchRequests() const;
 
@@ -42,6 +43,8 @@ private:
     JBNavigableSet<QPair<QString, QString>> myPathMappings;
     bool myWatcherRequiresUpdate;
 
+    QScopedPointer<QMutex> myLock;
+
     void updateFileWatcher();
 
     JBCanonicalPathMap createCanonicalPathMap(const QSet<QString> &flatWatchRoots,
@@ -50,8 +53,8 @@ private:
                                               bool convertToForwardSlashes);
 
     void updateWatchRoots(QSet<QString> rootsToAdd, QSet<WatchRequest> requestsToRemove,
-                          QSet<WatchRequest> &result,
-                          JBNavigableFileMap<QSet<WatchRequest>> &roots, bool recursiveWatchRoots);
+                          QSet<WatchRequest> &result, JBNavigableFileMap<QSet<WatchRequest>> &roots,
+                          bool recursiveWatchRoots);
 
     QString prepareWatchRoot(QString root);
 

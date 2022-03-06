@@ -1,11 +1,12 @@
-#include "Application.h"
 #include "MainWindow.h"
 
 #include <QApplication>
 
+#include "FileSystemNotifier.h"
+
 int main(int argc, char *argv[]) {
-    Application a(argc, argv);
-    JB::LocalFileSystem fs;
+    QApplication a(argc, argv);
+    FileSystemNotifier n;
 
     MainWindow w;
     w.show();

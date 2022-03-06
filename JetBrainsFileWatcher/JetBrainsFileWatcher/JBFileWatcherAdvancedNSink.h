@@ -4,6 +4,8 @@
 #include "JBFileWatcherDirtyPaths.h"
 #include "JBFileWatcherNotificationSink.h"
 
+#include <QMutex>
+
 class JBFileWatcher;
 
 class JBFileWatcherAdvancedNSink : public JBFileWatcherNotificationSink {
@@ -38,6 +40,8 @@ private:
 
     DirtyPaths myDirtyPaths;
     QMap<QObject *, QSet<QString>> myManualWatchRoots;
+
+    QScopedPointer<QMutex> myLock;
 };
 
 #endif // JBFILEWATCHERADVANCEDNSINK_H

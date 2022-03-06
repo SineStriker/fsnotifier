@@ -4,7 +4,7 @@
 #include <QDir>
 #include <QFileInfo>
 
-JBFileWatcher::JBFileWatcher(QObject *parent) : QObject(parent) {
+JBFileWatcher::JBFileWatcher(QObject *parent) : QObject(parent){
     init();
 }
 

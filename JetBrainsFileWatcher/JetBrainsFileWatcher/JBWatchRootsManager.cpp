@@ -7,7 +7,7 @@ using namespace JBFileWatcherUtils;
 #include <QDebug>
 
 JBWatchRootsManager::JBWatchRootsManager(JBFileWatcher *watcher, QObject *parent)
-    : QObject(parent), myFileWatcher(watcher) {
+    : QObject(parent), myFileWatcher(watcher), myLock(new QMutex()) {
     myWatcherRequiresUpdate = false;
 }
 
@@ -25,12 +25,17 @@ QSet<JBWatchRootsManager::WatchRequest>
     };
 
     QSet<JBFileWatchRequest> result;
-    updateWatchRoots(ListToSet(recursiveRootsToAdd), recursiveRequestsToRemove, result,
-                     myRecursiveWatchRoots, true);
-    updateWatchRoots(ListToSet(flatRootsToAdd), flatRequestsToRemove, result, myFlatWatchRoots,
-                     false);
 
-    if (myWatcherRequiresUpdate) {
+    bool needUpdate = false;
+    {
+        QMutexLocker locker(myLock.data());
+        updateWatchRoots(ListToSet(recursiveRootsToAdd), recursiveRequestsToRemove, result,
+                         myRecursiveWatchRoots, true);
+        updateWatchRoots(ListToSet(flatRootsToAdd), flatRequestsToRemove, result, myFlatWatchRoots,
+                         false);
+        needUpdate = myWatcherRequiresUpdate;
+    }
+    if (needUpdate) {
         updateFileWatcher();
     }
 
@@ -49,6 +54,7 @@ QSet<JBWatchRootsManager::WatchRequest> JBWatchRootsManager::currentWatchRequest
 }
 
 void JBWatchRootsManager::clear() {
+    QMutexLocker locker(myLock.data());
     myRecursiveWatchRoots.clear();
     myOptimizedRecursiveWatchRoots.clear();
     myFlatWatchRoots.clear();
@@ -58,6 +64,8 @@ void JBWatchRootsManager::clear() {
 
 void JBWatchRootsManager::updateSymlink(int fileId, const QString &linkPath,
                                         const QString &linkTarget) {
+    QMutexLocker locker(myLock.data());
+
     auto it = mySymlinksById.find(fileId);
     if (it != mySymlinksById.end()) {
         const auto &request = it.value();
@@ -93,6 +101,8 @@ void JBWatchRootsManager::updateSymlink(int fileId, const QString &linkPath,
 }
 
 void JBWatchRootsManager::removeSymlink(int fileId) {
+    QMutexLocker locker(myLock.data());
+
     auto it = mySymlinksById.find(fileId);
     if (it != mySymlinksById.end()) {
         mySymlinksById.erase(it);
@@ -101,6 +111,8 @@ void JBWatchRootsManager::removeSymlink(int fileId) {
 }
 
 void JBWatchRootsManager::updateFileWatcher() {
+    QMutexLocker locker(myLock.data());
+
     if (!myWatcherRequiresUpdate) {
         return;
     }

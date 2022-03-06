@@ -7,7 +7,8 @@
 
 typedef JBFileWatcherUtils::WatcherOp WatcherOp;
 
-JBNativeFileWatcher::JBNativeFileWatcher(QObject *parent) : JBPluggableFileWatcher(parent) {
+JBNativeFileWatcher::JBNativeFileWatcher(QObject *parent)
+    : JBPluggableFileWatcher(parent), myLastChangedPathsLock(new QMutex()) {
     Q_ASSERT(JBFS);
     myNotificationSink = nullptr;
     myLastChangedPaths.resize(2);
@@ -179,12 +180,16 @@ QString JBNativeFileWatcher::FSNotifierExecutable() {
 }
 
 void JBNativeFileWatcher::resetChangedPaths() {
+    QMutexLocker locker(myLastChangedPathsLock.data());
+
     myLastChangedPathIndex = 0;
     myLastChangedPaths[0] = "";
     myLastChangedPaths[1] = "";
 }
 
 bool JBNativeFileWatcher::isRepetition(const QString &path) {
+    QMutexLocker locker(myLastChangedPathsLock.data());
+
     const int length = myLastChangedPaths.size();
     for (int i = 0; i < length; ++i) {
         int last = myLastChangedPathIndex - i - 1;

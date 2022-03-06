@@ -5,7 +5,7 @@
 #include <QMainWindow>
 #include <QPushButton>
 
-#include "JetBrainsFileWatcher/JBFileWatchNamespace.h"
+#include "FileSystemNotifier.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -18,7 +18,8 @@ protected:
     QGridLayout *layout;
     QPushButton *startButton, *stopButton, *request1Button, *request2Button;
 
-    JB::LocalFileSystem *fs;
-    QList<JB::WatchRequest> requests;
+    //    JB::LocalFileSystem *fs;
+    //    QList<JB::WatchRequest> requests;
+    FileSystemNotifier *fs;
 };
 #endif // MAINWINDOW_H

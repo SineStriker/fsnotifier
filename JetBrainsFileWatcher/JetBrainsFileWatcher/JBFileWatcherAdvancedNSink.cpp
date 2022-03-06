@@ -7,7 +7,7 @@
 #include <QFileInfo>
 
 JBFileWatcherAdvancedNSink::JBFileWatcherAdvancedNSink(JBFileWatcher *watcher)
-    : myWatcher(watcher) {
+    : myWatcher(watcher), myLock(new QMutex()) {
     Q_ASSERT(watcher);
 }
 
@@ -15,6 +15,8 @@ JBFileWatcherAdvancedNSink::~JBFileWatcherAdvancedNSink() {
 }
 
 JBFileWatcherAdvancedNSink::DirtyPaths JBFileWatcherAdvancedNSink::getDirtyPaths() {
+    QMutexLocker locker(myLock.data());
+
     DirtyPaths dirtyPaths;
     if (!myDirtyPaths.isEmpty()) {
         dirtyPaths = myDirtyPaths;
@@ -45,6 +47,7 @@ void JBFileWatcherAdvancedNSink::notifyMapping(const QList<QPair<QString, QStrin
 void JBFileWatcherAdvancedNSink::notifyDirtyPath(const QString &path) {
     auto paths = myWatcher->myPathMap.mapToOriginalWatchRoots(path, true);
     if (!paths.isEmpty()) {
+        QMutexLocker locker(myLock.data());
         for (auto it = paths.begin(); it != paths.end(); ++it) {
             myDirtyPaths.addDirtyPath(*it);
         }
@@ -55,6 +58,7 @@ void JBFileWatcherAdvancedNSink::notifyDirtyPath(const QString &path) {
 void JBFileWatcherAdvancedNSink::notifyPathCreatedOrDeleted(const QString &path) {
     auto paths = myWatcher->myPathMap.mapToOriginalWatchRoots(path, true);
     if (!paths.isEmpty()) {
+        QMutexLocker locker(myLock.data());
         for (auto it = paths.begin(); it != paths.end(); ++it) {
             const QString &p = *it;
             myDirtyPaths.addDirtyPathRecursive(p);
@@ -70,6 +74,7 @@ void JBFileWatcherAdvancedNSink::notifyPathCreatedOrDeleted(const QString &path)
 void JBFileWatcherAdvancedNSink::notifyDirtyDirectory(const QString &path) {
     auto paths = myWatcher->myPathMap.mapToOriginalWatchRoots(path, false);
     if (!paths.isEmpty()) {
+        QMutexLocker locker(myLock.data());
         myDirtyPaths.addDirtyDirs(paths);
     }
     notifyOnEvent(path);
@@ -78,6 +83,7 @@ void JBFileWatcherAdvancedNSink::notifyDirtyDirectory(const QString &path) {
 void JBFileWatcherAdvancedNSink::notifyDirtyPathRecursive(const QString &path) {
     auto paths = myWatcher->myPathMap.mapToOriginalWatchRoots(path, false);
     if (!paths.isEmpty()) {
+        QMutexLocker locker(myLock.data());
         for (auto it = paths.begin(); it != paths.end(); ++it) {
             myDirtyPaths.addDirtyPathRecursive(*it);
         }
@@ -87,9 +93,12 @@ void JBFileWatcherAdvancedNSink::notifyDirtyPathRecursive(const QString &path) {
 
 void JBFileWatcherAdvancedNSink::notifyReset(const QString &path) {
     if (!path.isEmpty()) {
+        QMutexLocker locker(myLock.data());
         myDirtyPaths.addDirtyPathRecursive(path);
     } else {
         QFileInfoList roots = QDir::drives();
+
+        QMutexLocker locker(myLock.data());
         for (auto it = roots.begin(); it != roots.end(); ++it) {
             auto root = *it;
             myDirtyPaths.addDirtyPathRecursive(root.absoluteFilePath());

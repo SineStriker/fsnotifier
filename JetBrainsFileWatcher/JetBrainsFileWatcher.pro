@@ -9,7 +9,8 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    Application.cpp \
+    FileSystemNotifier.cpp \
+    FileSystemNotifier_p.cpp \
     JetBrainsFileWatcher/JBCanonicalPathMap.cpp \
     JetBrainsFileWatcher/JBFileWatchNamespace.cpp \
     JetBrainsFileWatcher/JBFileWatchRequest.cpp \
@@ -19,6 +20,7 @@ SOURCES += \
     JetBrainsFileWatcher/JBFileWatcherNotificationSink.cpp \
     JetBrainsFileWatcher/JBFileWatcherUtils.cpp \
     JetBrainsFileWatcher/JBLocalFileSystem.cpp \
+    JetBrainsFileWatcher/JBLocalFileSystemTimer.cpp \
     JetBrainsFileWatcher/JBNativeFileWatcher.cpp \
     JetBrainsFileWatcher/JBNavigableFileContainers.cpp \
     JetBrainsFileWatcher/JBNavigableMap.cpp \
@@ -29,7 +31,8 @@ SOURCES += \
     MainWindow.cpp
 
 HEADERS += \
-    Application.h \
+    FileSystemNotifier.h \
+    FileSystemNotifier_p.h \
     JetBrainsFileWatcher/JBCanonicalPathMap.h \
     JetBrainsFileWatcher/JBFileWatchNamespace.h \
     JetBrainsFileWatcher/JBFileWatchRequest.h \
@@ -39,6 +42,7 @@ HEADERS += \
     JetBrainsFileWatcher/JBFileWatcherNotificationSink.h \
     JetBrainsFileWatcher/JBFileWatcherUtils.h \
     JetBrainsFileWatcher/JBLocalFileSystem.h \
+    JetBrainsFileWatcher/JBLocalFileSystemTimer.h \
     JetBrainsFileWatcher/JBNativeFileWatcher.h \
     JetBrainsFileWatcher/JBNavigableFileContainers.h \
     JetBrainsFileWatcher/JBNavigableMap.h \
