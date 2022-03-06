@@ -12,7 +12,7 @@ IntelliJ IDEA uses a child process to notify the host of file system changes saf
 
 The source code of IntelliJ IDEA community edition has been published on JetBrains GitHub homepage, and the source code of fsnotifier is in directory named "native".
 
-Since fsnotifier is coded in C, there are three different codes for Windows, MAC, and Linux. You need to use CMake to compile different code on different platform to build the platform dependent executable, on Windows, it's usually called fsnotifier.exe.
+Since fsnotifier is coded in C, there are three different pieces of codes for Windows, Mac, and Linux. You need to use CMake to compile different codes on different OS to build the platform dependent executable, on Windows, it's usually called fsnotifier.exe.
 
 #### IntelliJ IDEA community edition
 
@@ -31,6 +31,10 @@ https://github.com/JetBrains/intellij-community/tree/master/native/fsNotifier
 This is the Qt library that can manage JetBrains Filesystem events processor.
 
 Most codes are C++ implementations of related Java code in IDEA.
+
+The main task of the library is to manage the fsnotifier sub-process, send optimized directory information provided by the frontend to fsnotifier through IPC and receive output, and encapsulate the received path and return it to the frontend.
+
+Qt 5.14 or later is required.
 
 ## How to use
 
