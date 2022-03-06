@@ -14,7 +14,7 @@ The source code of IntelliJ IDEA community edition has been published on JetBrai
 
 Since fsnotifier is coded in C, there are three different codes for Windows, MAC, and Linux. You need to use CMake to compile different code on different platform to build the platform dependent executable, on Windows, it's usually called fsnotifier.exe.
 
-#### IDEA source code
+#### IntelliJ IDEA community edition
 
 https://github.com/JetBrains/intellij-community
 
