@@ -34,6 +34,51 @@ Most codes are C++ implementations of related Java code in IDEA.
 
 ## How to use
 
+### Method 1
+````
+#include <QCoreApplication>
+
+#include "FileSystemNotifier.h"
+
+int main(int argc, char *argv[]) {
+    QCoreApplication a(argc, argv);
+
+    // Make sure to place the fsnotifier executable in the working directory
+    FileSystemNotifier fs;
+    fs.startWatch();
+
+    // Print dirty paths
+    connect(fs, &FileSystemNotifier::changed, [](const QStringList &paths) {
+        qDebug() << "[Paths changed]";
+        std::for_each(paths.begin(), paths.end(), [](const QString &path) {
+            qDebug().noquote() << path;
+        });
+    });
+
+    connect(fs, &FileSystemNotifier::renamed, [](const QStringList &paths) {
+        qDebug() << "[Paths renamed]";
+        std::for_each(paths.begin(), paths.end(), [](const QString &path) {
+            qDebug().noquote() << path;
+        });
+    });
+
+    // Watch "C:/foo" recursively and "D:/bar" non-recursively
+    fs->addRecursivePaths({"C:/foo"});
+    fs->addFlatPaths({"D:/bar"});
+
+    return a.exec();
+}
+````
+
+If a file or directroy is renamed(created or removed), signal "renamed" will be emitted.
+
+If a file or directory is changed, signal "changed" will be emitted.
+
+And for its parent directroy, signal "changed" will be emitted.
+
+
+### Method 2
+
 ````
 #include <QCoreApplication>
 
@@ -52,21 +97,18 @@ int main(int argc, char *argv[]) {
         std::for_each(dirtyPaths.begin(), dirtyPaths.end(), [](const QString &path) {
             qDebug() << path;
         });
-        qDebug() << " ";
     });
     QObject::connect(&fs, &JB::LocalFileSystem::flatDirsDirty, [](const QStringList &dirtyPaths) {
         qDebug() << "[Non-recursive dirs dirty]";
         std::for_each(dirtyPaths.begin(), dirtyPaths.end(), [](const QString &path) {
             qDebug() << path;
         });
-        qDebug() << " ";
     });
     QObject::connect(&fs, &JB::LocalFileSystem::recursivePathsDirty, [](const QStringList &dirtyPaths) {
         qDebug() << "[Recursive paths dirty]";
         std::for_each(dirtyPaths.begin(), dirtyPaths.end(), [](const QString &path) {
             qDebug() << path;
         });
-        qDebug() << " ";
     });
     
     QList<JB::WatchRequest> requests;
@@ -79,9 +121,11 @@ int main(int argc, char *argv[]) {
 
 ````
 
-If a file or directroy is renamed, signal "recursivePathsDirty" will be emitted.
+If a file or directroy is renamed(created or removed), signal "recursivePathsDirty" will be emitted.
 
-If a file or directory is changed(created or removed), signal "recursivePathsDirty" will be emitted. And for its parent directroy, signal "pathsDirty" will be emitted.
+If a file or directory is changed, signal "pathsDirty" or "flatDirsDirty" will be emitted.
+
+And for its parent directroy, signal "pathsDirty" will be emitted.
 
 ## Message output
 
@@ -93,4 +137,4 @@ Uncomment the lines in *JBFileWatcherUtils.h* to disable debug output and warnin
 
 ## Suggestions
 
-As long as JB::LocalFileSystem::start() is called, then JB::LocalFileSystem::dispose() is recommended to be called before QCoreApplication quits.
+As long as JB::LocalFileSystem::start() is called, then JB::LocalFileSystem::dispose() is recommended to be called before QCoreApplication quits although it will call automatically after signal QCoreApplication::aboutToQuit emitted.
