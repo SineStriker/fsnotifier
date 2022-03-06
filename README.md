@@ -66,3 +66,19 @@ int main(int argc, char *argv[]) {
 }
 
 ````
+
+If a file or directroy is renamed, signal "recursivePathsDirty" will be emitted.
+
+If a file or directory is changed(created or removed), signal "recursivePathsDirty" will be emitted. And for its parent directroy, signal "pathsDirty" will be emitted.
+
+## Message output
+
+````
+// #define JB_NO_DEBUG_OUTPUT
+// #define JB_NO_WARNING_OUTPUT
+````
+Uncomment the lines in *JBFileWatcherUtils.h* to disable debug output and warning output.
+
+## Suggestions
+
+As long as JB::LocalFileSystem::start() is called, then JB::LocalFileSystem::dispose() is recommended to be called before QCoreApplication quits.
