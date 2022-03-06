@@ -80,7 +80,8 @@ bool JBNativeFileWatcher::startupProcess(bool restart) {
     }
 
     if (restart) {
-        if (!myRecursiveWatchRoots.isEmpty() && !myFlatWatchRoots.isEmpty()) {
+        if (!myRecursiveWatchRoots.isEmpty() || !myFlatWatchRoots.isEmpty()) {
+            jbDebug() << "[Watcher] Restart watcher and set paths again";
             setWatchRootsCore(myRecursiveWatchRoots, myFlatWatchRoots, true);
         }
     }
