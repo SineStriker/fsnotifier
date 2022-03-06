@@ -73,7 +73,7 @@ bool JBNativeFileWatcher::startupProcess(bool restart) {
         return false;
     }
 
-    jbDebug() << "Starting file watcher:" << myExecutable;
+    jbDebug() << "[Watcher] Starting file watcher:" << myExecutable;
 
     if (!startProcess(myExecutable)) {
         return false;
@@ -94,7 +94,7 @@ bool JBNativeFileWatcher::shutdownProcess() {
             return false;
         }
         if (!myProcess->waitForFinished(500)) {
-            jbWarning() << "File watcher is still alive, doing a force quit.";
+            jbWarning() << "[Watcher] File watcher is still alive, doing a force quit.";
             if (!killProcess()) {
                 return false;
             }
@@ -146,7 +146,7 @@ void JBNativeFileWatcher::setWatchRootsCore(QStringList recursive, QStringList f
         flag &= writeLine("#");
     }
     if (!flag) {
-        jbWarning() << "Error setting roots.";
+        jbWarning() << "[Watcher] Error setting roots.";
     }
 }
 
@@ -207,12 +207,12 @@ bool JBNativeFileWatcher::isRepetition(const QString &path) {
 void JBNativeFileWatcher::notifyProcessTerminated(int exitCode, QProcess::ExitStatus exitStatus) {
     Q_UNUSED(exitStatus)
 
-    jbDebug() << "Watcher terminated with exit code" << exitCode;
+    jbDebug() << "[Watcher] Watcher terminated with exit code" << exitCode;
 
     if (!startupProcess(true)) {
         shutdownProcess();
-        jbWarning()
-            << "Watcher terminated and attempt to restart has failed. Exiting watching thread.";
+        jbWarning() << "[Watcher] Watcher terminated and attempt to restart has failed. Exiting "
+                       "watching thread.";
     }
 }
 
@@ -226,7 +226,7 @@ void JBNativeFileWatcher::notifyTextAvailable(const QString &line,
     if (myLastOp == WatcherOp::UNKNOWN) {
         WatcherOp watcherOp = JBFileWatcherUtils::StringToWatcherOp(line);
         if (watcherOp == WatcherOp::UNKNOWN) {
-            jbWarning() << "Illegal watcher command: '" + line + "'";
+            jbWarning() << "[Watcher] Illegal watcher command: '" + line + "'";
             return;
         }
         if (watcherOp == WatcherOp::GIVEUP) {
@@ -317,7 +317,7 @@ void JBNativeFileWatcher::processChange(const QString &path, WatcherOp op) {
         break;
 
     default:
-        jbWarning() << "Unexpected op:" << JBFileWatcherUtils::WatcherOpToString(op);
+        jbWarning() << "[Watcher] Unexpected op:" << JBFileWatcherUtils::WatcherOpToString(op);
     }
 }
 

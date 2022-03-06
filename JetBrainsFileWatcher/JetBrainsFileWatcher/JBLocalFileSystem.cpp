@@ -10,6 +10,8 @@ JBLocalFileSystem::JBLocalFileSystem(QObject *parent) : QObject(parent) {
     Q_ASSERT(!self);
     self = this;
 
+    jbDebug() << "[Local FS] Local File System init";
+
     myDisposed = true;
     myAfterMarkDirtyCallback = -1;
 
@@ -24,6 +26,10 @@ JBLocalFileSystem::~JBLocalFileSystem() {
         dispose();
     }
     JBNativeFileWatcher::destroyWatchers();
+
+    jbDebug() << "[Local FS] Local File System quit";
+
+    self = nullptr;
 }
 
 void JBLocalFileSystem::start() {
@@ -110,8 +116,8 @@ JBLocalFileSystem *JBLocalFileSystem::self = nullptr;
 
 JBLocalFileSystem *JBLocalFileSystem::instance() {
     if (!self) {
-        qDebug() << "Auto create JetBrains Local File System instance.";
-        self = new JBLocalFileSystem(qApp);
+        jbDebug() << "[Local FS] Auto create JetBrains Local File System instance";
+        new JBLocalFileSystem(qApp);
     }
     return self;
 }

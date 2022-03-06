@@ -41,7 +41,7 @@ bool JBPluggableFileWatcher::writeLine(const QString &line) {
     if (myProcess->state() != QProcess::Running) {
         return false;
     }
-    jbDebug() << "command:" << line;
+    jbDebug().noquote() << "[Watcher] Command:" << line;
 
     QByteArray bytes = line.toUtf8();
     bytes.append('\n');

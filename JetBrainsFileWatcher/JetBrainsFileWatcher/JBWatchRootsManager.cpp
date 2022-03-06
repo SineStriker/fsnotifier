@@ -76,7 +76,8 @@ void JBWatchRootsManager::updateSymlink(int fileId, const QString &linkPath,
     JBSymlinkData data(fileId, linkPath, linkTarget);
     auto it2 = mySymlinksByPath.find(linkPath);
     if (it2 != mySymlinksByPath.end()) {
-        jbWarning() << "Path conflict. Existing symlink: " + it2->second.symlinkData().toString() +
+        jbWarning() << "[Warning] Path conflict. Existing symlink: " +
+                           it2->second.symlinkData().toString() +
                            " vs. new symlink: " + data.toString();
         return;
     }
@@ -202,7 +203,7 @@ QString JBWatchRootsManager::prepareWatchRoot(QString root) {
         root = root.mid(0, index);
     }
     if (QDir::isRelativePath(root)) {
-        jbWarning() << "Watch roots should be absolute";
+        jbWarning() << "[Warning] Watch roots should be absolute";
         return "";
     }
     return QDir::toNativeSeparators(root);

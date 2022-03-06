@@ -94,11 +94,13 @@ void JBFileWatcher::setWatchRoots(const JBCanonicalPathMap &pathMap) {
 
 void JBFileWatcher::notifyOnFailure(const QString &reason) {
     if (reason == "watcher.exe.not.found") {
-        jbWarning() << "Fsnotifier not found.";
+        jbWarning() << "[Watcher] Fsnotifier not found.";
     } else if (reason == "watcher.exe.not.exe") {
-        jbWarning() << "Fsnotifier is not executable.";
+        jbWarning() << "[Watcher] Fsnotifier is not executable.";
     } else if (reason == "watcher.failed.to.start") {
-        jbWarning() << "Fsnotifier failed to start.";
+        jbWarning() << "[Watcher] Fsnotifier failed to start.";
+    } else if (reason == "watcher.gave.up") {
+        jbWarning() << "[Watcher] Fsnotifier gave up.";
     }
 }
 

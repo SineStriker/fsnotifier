@@ -5,7 +5,7 @@
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
-    fs = new JB::LocalFileSystem(this);
+    fs = JBFS;
 
     startButton = new QPushButton("Start", this);
     stopButton = new QPushButton("Stop", this);
@@ -20,11 +20,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     connect(request1Button, &QPushButton::clicked, this, [&]() { //
         fs->replaceWatchedRoots({}, {"E:/test1/123"}, {});
-        qDebug() << fs->currentWatchedRoots();
     });
     connect(request2Button, &QPushButton::clicked, this, [&]() { //
         fs->replaceWatchedRoots(fs->currentWatchedRoots(), {}, {});
-        qDebug() << fs->currentWatchedRoots();
     });
 
     connect(fs, &JB::LocalFileSystem::pathsDirty, [](const QStringList &dirtyPaths) {

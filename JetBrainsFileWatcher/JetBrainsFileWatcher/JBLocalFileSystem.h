@@ -47,7 +47,6 @@ protected:
     // Singleton
 public:
     static JBLocalFileSystem *instance();
-    static JBLocalFileSystem *destruct();
 
 private:
     static JBLocalFileSystem *self;
