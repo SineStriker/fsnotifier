@@ -41,6 +41,7 @@ Qt 5.14 or later is required.
 ### Method 1
 ````
 #include <QCoreApplication>
+#include <QDebug>
 
 #include "FileSystemNotifier.h"
 
@@ -52,23 +53,23 @@ int main(int argc, char *argv[]) {
     fs.startWatch();
 
     // Print dirty paths
-    connect(fs, &FileSystemNotifier::changed, [](const QStringList &paths) {
+    QObject::connect(&fs, &FileSystemNotifier::changed, [](const QStringList &paths) {
         qDebug() << "[Paths changed]";
-        std::for_each(paths.begin(), paths.end(), [](const QString &path) {
-            qDebug().noquote() << path;
+        std::for_each(paths.begin(), paths.end(), [](const QString &path) { 
+            qDebug().noquote() << path; 
         });
     });
 
-    connect(fs, &FileSystemNotifier::renamed, [](const QStringList &paths) {
+    QObject::connect(&fs, &FileSystemNotifier::renamed, [](const QStringList &paths) {
         qDebug() << "[Paths renamed]";
-        std::for_each(paths.begin(), paths.end(), [](const QString &path) {
-            qDebug().noquote() << path;
+        std::for_each(paths.begin(), paths.end(),[](const QString &path) { 
+            qDebug().noquote() << path; 
         });
     });
 
     // Watch "C:/foo" recursively and "D:/bar" non-recursively
-    fs->addRecursivePaths({"C:/foo"});
-    fs->addFlatPaths({"D:/bar"});
+    fs.addRecursivePaths({"C:/foo"});
+    fs.addFlatPaths({"D:/bar"});
 
     return a.exec();
 }
