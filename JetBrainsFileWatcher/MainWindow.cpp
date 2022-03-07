@@ -3,6 +3,7 @@
 
 #include <QApplication>
 #include <QDebug>
+#include <QThread>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     startButton = new QPushButton("Start", this);

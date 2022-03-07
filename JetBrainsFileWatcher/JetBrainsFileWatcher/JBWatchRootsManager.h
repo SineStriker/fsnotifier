@@ -70,6 +70,7 @@ private:
                                 QList<WatchRequest> &watchSymlinkRequestsToAdd);
 
 signals:
+    void setRootsRequested(const JBCanonicalPathMap &map);
 };
 
 #endif // JBWATCHROOTSMANAGER_H

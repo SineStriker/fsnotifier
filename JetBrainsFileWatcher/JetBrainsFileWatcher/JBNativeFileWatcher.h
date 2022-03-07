@@ -18,12 +18,13 @@ public:
     ~JBNativeFileWatcher();
 
 private:
-    JBFileWatcherNotificationSink *myNotificationSink;
+    QAtomicInteger<bool> myIsActive;
 
+    JBFileWatcherNotificationSink *myNotificationSink;
     QString myExecutable;
 
     QAtomicInt myStartAttemptCount;
-    bool myIsShuttingDown;
+    QAtomicInteger<bool> myIsShuttingDown;
     QAtomicInt mySettingRoots;
 
     QStringList myRecursiveWatchRoots;
@@ -46,8 +47,12 @@ public:
     void initialize(JBFileWatcherNotificationSink *sink);
     void dispose();
 
+    bool isActive()const;
+    bool isShuttingDown() const;
     bool isSettingRoots() const;
+
     void setWatchRoots(const QStringList &recursive, const QStringList &flat);
+    void waitForRootsSet();
 
 protected:
     virtual QString executable() const;
@@ -77,15 +82,6 @@ private:
     void processRemap();
     void processUnwatchable();
     void processChange(const QString &path, JBFileWatcherUtils::WatcherOp op);
-
-public:
-    static void createWatchers(int n);
-    static void destroyWatchers();
-
-    static QList<JBNativeFileWatcher *> watchers();
-
-private:
-    static QList<JBNativeFileWatcher *> s_watchers;
 };
 
 #endif // JBNATIVEFILEWATCHER_H

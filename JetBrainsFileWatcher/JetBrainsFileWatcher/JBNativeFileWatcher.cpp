@@ -1,17 +1,18 @@
 #include "JBNativeFileWatcher.h"
 #include "JBFileWatcher.h"
 #include "JBFileWatcherNotificationSink.h"
-#include "JBLocalFileSystem.h"
 
+#include <QCoreApplication>
 #include <QFileInfo>
+#include <QThread>
 
 typedef JBFileWatcherUtils::WatcherOp WatcherOp;
 
 JBNativeFileWatcher::JBNativeFileWatcher(QObject *parent)
     : JBPluggableFileWatcher(parent), myLastChangedPathsLock(new QMutex()) {
-    Q_ASSERT(JBFS);
     myNotificationSink = nullptr;
     myLastChangedPaths.resize(2);
+    myIsActive = false;
 }
 
 JBNativeFileWatcher::~JBNativeFileWatcher() {
@@ -22,11 +23,9 @@ JBNativeFileWatcher::~JBNativeFileWatcher() {
 
 void JBNativeFileWatcher::initialize(JBFileWatcherNotificationSink *sink) {
     Q_ASSERT(sink);
-
     myNotificationSink = sink;
     myExecutable = executable();
 
-    myIsShuttingDown = false;
     myStartAttemptCount = 0;
     myIsShuttingDown = false;
     mySettingRoots = 0;
@@ -45,23 +44,37 @@ void JBNativeFileWatcher::initialize(JBFileWatcherNotificationSink *sink) {
     } else if (!startupProcess()) {
         notifyOnFailure("watcher.failed.to.start");
     }
+
+    myIsActive = true;
 }
 
 void JBNativeFileWatcher::dispose() {
     myIsShuttingDown = true;
     shutdownProcess();
+
+    myIsActive = false;
+}
+
+bool JBNativeFileWatcher::isActive() const {
+    return myIsActive.loadRelaxed();
 }
 
 bool JBNativeFileWatcher::isSettingRoots() const {
-    return isOperational() && mySettingRoots > 0;
+    return isOperational() && mySettingRoots.loadRelaxed() > 0;
 }
 
 void JBNativeFileWatcher::setWatchRoots(const QStringList &recursive, const QStringList &flat) {
     setWatchRootsCore(recursive, flat, false);
 }
 
+void JBNativeFileWatcher::waitForRootsSet() {
+    while (isSettingRoots()) {
+        qApp->processEvents();
+    }
+}
+
 bool JBNativeFileWatcher::startupProcess(bool restart) {
-    if (myIsShuttingDown) {
+    if (myIsShuttingDown.loadRelaxed()) {
         return true;
     }
 
@@ -110,6 +123,7 @@ void JBNativeFileWatcher::setWatchRootsCore(QStringList recursive, QStringList f
         myNotificationSink->notifyManualWatchRoots(this, myIgnoredRoots);
         return;
     }
+
 
     mySettingRoots++;
     myRecursiveWatchRoots = recursive;
@@ -325,24 +339,4 @@ void JBNativeFileWatcher::processChange(const QString &path, WatcherOp op) {
     default:
         jbWarning() << "[Watcher] Unexpected op:" << JBFileWatcherUtils::WatcherOpToString(op);
     }
-}
-
-QList<JBNativeFileWatcher *> JBNativeFileWatcher::s_watchers;
-
-void JBNativeFileWatcher::createWatchers(int n) {
-    destroyWatchers();
-    for (int i = 0; i < n; ++i) {
-        s_watchers.append(new JBNativeFileWatcher(JBFS));
-    }
-}
-
-void JBNativeFileWatcher::destroyWatchers() {
-    for (auto it = s_watchers.begin(); it != s_watchers.end(); ++it) {
-        (*it)->deleteLater();
-    }
-    s_watchers.clear();
-}
-
-QList<JBNativeFileWatcher *> JBNativeFileWatcher::watchers() {
-    return s_watchers;
 }

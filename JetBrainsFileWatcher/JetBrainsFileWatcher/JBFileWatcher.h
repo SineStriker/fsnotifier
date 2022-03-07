@@ -3,9 +3,8 @@
 
 #include "JBCanonicalPathMap.h"
 #include "JBFileWatcherAdvancedNSink.h"
-#include "JBNativeFileWatcher.h"
 
-class JBFileWatcher : QObject {
+class JBFileWatcher : public QObject {
     Q_OBJECT
 public:
     explicit JBFileWatcher(QObject *parent = nullptr);

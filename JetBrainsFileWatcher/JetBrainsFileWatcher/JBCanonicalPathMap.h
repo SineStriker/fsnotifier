@@ -4,6 +4,7 @@
 #include <QList>
 #include <QMap>
 #include <QMultiMap>
+#include <QMetaType>
 
 #include "JBNavigableFileContainers.h"
 
@@ -37,5 +38,7 @@ private:
     static void addPrefixedPaths(const JBNavigableFileSet &paths, const QString &prefix,
                                  JBNavigableFileSet &result);
 };
+
+Q_DECLARE_METATYPE(JBCanonicalPathMap);
 
 #endif // JBCANONICALPATHMAP_H

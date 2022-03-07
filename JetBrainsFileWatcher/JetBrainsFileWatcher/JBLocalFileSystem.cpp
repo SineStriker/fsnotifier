@@ -1,6 +1,7 @@
 #include "JBLocalFileSystem.h"
 #include "JBLocalFileSystemTimer.h"
 #include "JBNativeFileWatcher.h"
+#include "JBNativeFileWatcherExecutor.h"
 
 #include <QCoreApplication>
 #include <QDebug>
@@ -8,18 +9,27 @@
 #include <QTimerEvent>
 
 JBLocalFileSystem::JBLocalFileSystem(QObject *parent)
-    : QObject(parent), myTimer(new JBLocalFileSystemTimer(this)) {
+    : QObject(parent), myWatcher(new JBFileWatcher()), myTimer(new JBLocalFileSystemTimer(this)) {
     Q_ASSERT(!self);
     self = this;
 
     jbDebug() << "[Local FS] Local File System init";
 
-    myDisposed = true;
+    createWatchers(1);
 
-    myWatcher = new JBFileWatcher(this);
-    myWatchRootsManager = new JBWatchRootsManager(myWatcher, this);
+    watchThread = new QThread(this);
+    myWatcher->moveToThread(watchThread);
 
-    JBNativeFileWatcher::createWatchers(1);
+    timerThread = new QThread(this);
+    myTimer->moveToThread(timerThread);
+
+    myWatchRootsManager = new JBWatchRootsManager(myWatcher.data(), this);
+
+    connect(watchThread, &QThread::started, myWatcher.data(), &JBFileWatcher::start);
+    connect(watchThread, &QThread::finished, myWatcher.data(), &JBFileWatcher::dispose);
+
+    connect(timerThread, &QThread::started, myTimer.data(), &JBLocalFileSystemTimer::start);
+    connect(timerThread, &QThread::finished, myTimer.data(), &JBLocalFileSystemTimer::stop);
 
     // Callback
     connect(myTimer.data(), &JBLocalFileSystemTimer::afterMarkDirtyCallback, this,
@@ -30,10 +40,10 @@ JBLocalFileSystem::JBLocalFileSystem(QObject *parent)
 }
 
 JBLocalFileSystem::~JBLocalFileSystem() {
-    if (!myDisposed) {
+    if (!disposed()) {
         dispose();
     }
-    JBNativeFileWatcher::destroyWatchers();
+    destroyWatchers();
 
     jbDebug() << "[Local FS] Local File System quit";
 
@@ -41,37 +51,41 @@ JBLocalFileSystem::~JBLocalFileSystem() {
 }
 
 void JBLocalFileSystem::start() {
-    if (myDisposed) {
+    if (disposed()) {
         myWatchRootsManager->clear();
-        myDisposed = false;
 
-        myWatcher->start();
-        myTimer->start();
+        watchThread->start();
+        timerThread->start();
+        while (!myTimer->isRunning()) {
+        }
     }
 }
 
 void JBLocalFileSystem::dispose() {
-    if (!myDisposed) {
-        myTimer->stop();
+    if (!disposed()) {
+        timerThread->quit();
+        while (myTimer->isRunning()) {
+        }
+        timerThread->wait();
 
-        myWatcher->dispose();
-        myDisposed = true;
+        watchThread->quit();
+        watchThread->wait();
     }
 }
 
 bool JBLocalFileSystem::disposed() const {
-    return myDisposed;
+    return !timerThread->isRunning();
 }
 
 JBFileWatcher *JBLocalFileSystem::fileWatcher() const {
-    return myWatcher;
+    return myWatcher.data();
 }
 
 QList<JBLocalFileSystem::WatchRequest>
     JBLocalFileSystem::replaceWatchedRoots(const QList<WatchRequest> &watchRequestsToRemove,
                                            const QStringList &recursiveRootsToAdd,
                                            const QStringList &flatRootsToAdd) {
-    if (myDisposed) {
+    if (disposed()) {
         return {};
     }
     return JBFileWatcherUtils::SetToList(myWatchRootsManager->replaceWatchedRoots(
@@ -79,7 +93,7 @@ QList<JBLocalFileSystem::WatchRequest>
 }
 
 QList<JBLocalFileSystem::WatchRequest> JBLocalFileSystem::currentWatchedRoots() const {
-    if (myDisposed) {
+    if (disposed()) {
         return {};
     }
     return JBFileWatcherUtils::SetToList(myWatchRootsManager->currentWatchRequests());
@@ -110,4 +124,18 @@ JBLocalFileSystem *JBLocalFileSystem::instance() {
         new JBLocalFileSystem(qApp);
     }
     return self;
+}
+
+void JBLocalFileSystem::createWatchers(int n) {
+    for (int i = 0; i < n; ++i) {
+        auto e = new JBNativeFileWatcherExecutor(this);
+        e->setObjectName("com.intellij.vfs.local.pluggableFileWatcher");
+    }
+}
+
+void JBLocalFileSystem::destroyWatchers() {
+    auto es = JBNativeFileWatcherExecutor::watchers();
+    for (auto it = es.begin(); it != es.end(); ++it) {
+        delete *it;
+    }
 }

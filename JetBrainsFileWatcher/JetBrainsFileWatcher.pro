@@ -12,6 +12,7 @@ SOURCES += \
     FileSystemNotifier.cpp \
     FileSystemNotifier_p.cpp \
     JetBrainsFileWatcher/JBCanonicalPathMap.cpp \
+    JetBrainsFileWatcher/JBExecutorService.cpp \
     JetBrainsFileWatcher/JBFileWatchNamespace.cpp \
     JetBrainsFileWatcher/JBFileWatchRequest.cpp \
     JetBrainsFileWatcher/JBFileWatcher.cpp \
@@ -22,6 +23,7 @@ SOURCES += \
     JetBrainsFileWatcher/JBLocalFileSystem.cpp \
     JetBrainsFileWatcher/JBLocalFileSystemTimer.cpp \
     JetBrainsFileWatcher/JBNativeFileWatcher.cpp \
+    JetBrainsFileWatcher/JBNativeFileWatcherExecutor.cpp \
     JetBrainsFileWatcher/JBNavigableFileContainers.cpp \
     JetBrainsFileWatcher/JBNavigableMap.cpp \
     JetBrainsFileWatcher/JBNavigableSet.cpp \
@@ -34,6 +36,7 @@ HEADERS += \
     FileSystemNotifier.h \
     FileSystemNotifier_p.h \
     JetBrainsFileWatcher/JBCanonicalPathMap.h \
+    JetBrainsFileWatcher/JBExecutorService.h \
     JetBrainsFileWatcher/JBFileWatchNamespace.h \
     JetBrainsFileWatcher/JBFileWatchRequest.h \
     JetBrainsFileWatcher/JBFileWatcher.h \
@@ -44,6 +47,7 @@ HEADERS += \
     JetBrainsFileWatcher/JBLocalFileSystem.h \
     JetBrainsFileWatcher/JBLocalFileSystemTimer.h \
     JetBrainsFileWatcher/JBNativeFileWatcher.h \
+    JetBrainsFileWatcher/JBNativeFileWatcherExecutor.h \
     JetBrainsFileWatcher/JBNavigableFileContainers.h \
     JetBrainsFileWatcher/JBNavigableMap.h \
     JetBrainsFileWatcher/JBNavigableSet.h \

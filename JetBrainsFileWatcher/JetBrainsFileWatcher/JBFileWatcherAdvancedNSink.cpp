@@ -1,5 +1,7 @@
 #include "JBFileWatcherAdvancedNSink.h"
 #include "JBFileWatcher.h"
+#include "JBNativeFileWatcher.h"
+#include "JBNativeFileWatcherExecutor.h"
 #include "JBPluggableFileWatcher.h"
 
 #include <QDebug>
@@ -23,10 +25,10 @@ JBFileWatcherAdvancedNSink::DirtyPaths JBFileWatcherAdvancedNSink::getDirtyPaths
         myDirtyPaths.clear();
     }
 
-    const auto &watchers = JBNativeFileWatcher::watchers();
+    const auto &watchers = JBNativeFileWatcherExecutor::watchers();
     for (auto it = watchers.begin(); it != watchers.end(); ++it) {
         auto watcher = *it;
-        watcher->resetChangedPaths();
+        watcher->watcher()->resetChangedPaths();
     }
 
     return dirtyPaths;

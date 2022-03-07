@@ -4,6 +4,8 @@
 #include "JBFileWatcher.h"
 #include "JBWatchRootsManager.h"
 
+#include <QThread>
+
 #define JBFS JBLocalFileSystem::instance()
 
 class JBLocalFileSystemTimer;
@@ -31,9 +33,12 @@ public:
     void markSuspiciousFilesDirty(const QStringList &paths);
 
 private:
-    JBFileWatcher *myWatcher;
+    QScopedPointer<JBFileWatcher> myWatcher;
     JBWatchRootsManager *myWatchRootsManager;
-    bool myDisposed;
+
+    QThread *timerThread;
+    QThread *watchThread;
+    QList<QThread *> processThreads;
 
     QScopedPointer<JBLocalFileSystemTimer> myTimer;
 
@@ -50,7 +55,14 @@ public:
 private:
     static JBLocalFileSystem *self;
 
+    void createWatchers(int n);
+    void destroyWatchers();
+
 signals:
+    void replaceRequested(const QList<JBFileWatchRequest> &watchRequestsToRemove,
+                          const QStringList &recursiveRootsToAdd,
+                          const QStringList &flatRootsToAdd);
+
     void pathsDirty(const QStringList &paths);
     void flatDirsDirty(const QStringList &paths);
     void recursivePathsDirty(const QStringList &paths);

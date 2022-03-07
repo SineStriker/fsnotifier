@@ -1,10 +1,12 @@
 #include "JBFileWatcher.h"
+#include "JBNativeFileWatcher.h"
+#include "JBNativeFileWatcherExecutor.h"
 
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
 
-JBFileWatcher::JBFileWatcher(QObject *parent) : QObject(parent){
+JBFileWatcher::JBFileWatcher(QObject *parent) : QObject(parent) {
     init();
 }
 
@@ -16,24 +18,26 @@ void JBFileWatcher::init() {
 }
 
 void JBFileWatcher::start() {
+    jbDebug() << "[Local FS] Main file watcher sink init.";
     clear();
-    const auto &watchers = JBNativeFileWatcher::watchers();
+    const auto &watchers = JBNativeFileWatcherExecutor::watchers();
     for (auto it = watchers.begin(); it != watchers.end(); ++it) {
         auto watcher = *it;
-        watcher->initialize(myNotificationSink.data());
+        watcher->start(myNotificationSink.data());
     }
 }
 
 void JBFileWatcher::dispose() {
-    const auto &watchers = JBNativeFileWatcher::watchers();
+    const auto &watchers = JBNativeFileWatcherExecutor::watchers();
     for (auto it = watchers.begin(); it != watchers.end(); ++it) {
         auto watcher = *it;
-        watcher->dispose();
+        watcher->quit();
     }
+    jbDebug() << "[Local FS] Main file watcher sink quit.";
 }
 
 bool JBFileWatcher::isOperational() const {
-    const auto &watchers = JBNativeFileWatcher::watchers();
+    const auto &watchers = JBNativeFileWatcherExecutor::watchers();
     for (auto it = watchers.begin(); it != watchers.end(); ++it) {
         auto watcher = *it;
         if (watcher->isOperational()) {
@@ -44,10 +48,10 @@ bool JBFileWatcher::isOperational() const {
 }
 
 bool JBFileWatcher::isSettingRoots() const {
-    const auto &watchers = JBNativeFileWatcher::watchers();
+    const auto &watchers = JBNativeFileWatcherExecutor::watchers();
     for (auto it = watchers.begin(); it != watchers.end(); ++it) {
         auto watcher = *it;
-        if (watcher->isSettingRoots()) {
+        if (watcher->watcher()->isSettingRoots()) {
             return true;
         }
     }
@@ -83,11 +87,11 @@ void JBFileWatcher::setWatchRoots(const JBCanonicalPathMap &pathMap) {
     myManualWatchRoots.clear();
 
     auto roots = myPathMap.getCanonicalWatchRoots();
-    const auto &watchers = JBNativeFileWatcher::watchers();
+    const auto &watchers = JBNativeFileWatcherExecutor::watchers();
     for (auto it = watchers.begin(); it != watchers.end(); ++it) {
         auto watcher = *it;
         if (watcher->isOperational()) {
-            watcher->setWatchRoots(roots.first, roots.second);
+            watcher->setRoots(roots.first, roots.second);
         }
     }
 }

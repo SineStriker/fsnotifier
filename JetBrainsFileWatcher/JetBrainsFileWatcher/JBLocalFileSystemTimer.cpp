@@ -3,39 +3,34 @@
 
 #include <QTimerEvent>
 
-JBLocalFileSystemTimer::JBLocalFileSystemTimer(JBLocalFileSystem *fs)
-    : QObject(nullptr), fs(fs), lock(new QMutex()) {
+JBLocalFileSystemTimer::JBLocalFileSystemTimer(JBLocalFileSystem *fs, QObject *parent)
+    : QObject(parent), fs(fs), lock(new QMutex()) {
     timerId = -1;
-
-    // New thread
-    taskThread = new QThread(fs);
-    moveToThread(taskThread);
-
-    connect(taskThread, &QThread::started, this, &JBLocalFileSystemTimer::handleThreadStart);
-    connect(taskThread, &QThread::finished, this, &JBLocalFileSystemTimer::handleThreadFinish);
 }
 
 JBLocalFileSystemTimer::~JBLocalFileSystemTimer() {
-    stop();
+    if (isRunning()) {
+        stop();
+    }
 }
 
 void JBLocalFileSystemTimer::start() {
-    // Run in host thread
-    if (!taskThread->isRunning()) {
-        taskThread->start();
+    jbDebug() << "[Local FS] Dirty path timer thread starts.";
+    if (!isRunning()) {
+        timerId = startTimer(500);
     }
 }
 
 void JBLocalFileSystemTimer::stop() {
-    // Run in host thread
-    if (taskThread->isRunning()) {
-        taskThread->quit();
-        taskThread->wait();
+    if (isRunning()) {
+        killTimer(timerId);
+        timerId = -1;
     }
+    jbDebug() << "[Local FS] Dirty path timer thread stops.";
 }
 
 bool JBLocalFileSystemTimer::isRunning() const {
-    return taskThread->isRunning();
+    return timerId.loadRelaxed() >= 0;
 }
 
 bool JBLocalFileSystemTimer::storeRefreshStatusToFiles() {
@@ -53,21 +48,6 @@ bool JBLocalFileSystemTimer::storeRefreshStatusToFiles() {
         return !dirtyPaths.isEmpty();
     }
     return false;
-}
-
-void JBLocalFileSystemTimer::handleThreadStart() {
-    // Run in timer thread
-    if (timerId < 0) {
-        timerId = startTimer(500);
-    }
-}
-
-void JBLocalFileSystemTimer::handleThreadFinish() {
-    // Run in timer thread
-    if (timerId >= 0) {
-        killTimer(timerId);
-        timerId = -1;
-    }
 }
 
 void JBLocalFileSystemTimer::markPathsDirty(const QStringList &paths) {

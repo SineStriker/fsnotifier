@@ -1,6 +1,6 @@
 #include "JBFileWatcherNotificationSink.h"
-#include "JBPluggableFileWatcher.h"
 #include "JBFileWatcherUtils.h"
+#include "JBPluggableFileWatcher.h"
 
 JBFileWatcherNotificationSink::JBFileWatcherNotificationSink() {
 }

@@ -3,7 +3,6 @@
 
 #include <QMutex>
 #include <QObject>
-#include <QThread>
 
 class JBLocalFileSystem;
 class JBFileWatcherDirtyPaths;
@@ -11,7 +10,7 @@ class JBFileWatcherDirtyPaths;
 class JBLocalFileSystemTimer : public QObject {
     Q_OBJECT
 public:
-    explicit JBLocalFileSystemTimer(JBLocalFileSystem *fs);
+    explicit JBLocalFileSystemTimer(JBLocalFileSystem *fs, QObject *parent = nullptr);
     ~JBLocalFileSystemTimer();
 
 public:
@@ -23,9 +22,6 @@ public:
     bool storeRefreshStatusToFiles();
 
 private:
-    void handleThreadStart();
-    void handleThreadFinish();
-
     void markPathsDirty(const QStringList &paths);
     void markFlatDirsDirty(const QStringList &paths);
     void markRecursiveDirsDirty(const QStringList &paths);
@@ -33,13 +29,12 @@ private:
 protected:
     JBLocalFileSystem *fs;
 
-    int timerId;
+    QAtomicInt timerId;
 
     QStringList lastDirtyPaths;
     QStringList lastDirtyFlatDirs;
     QStringList lastDirtyRecursiveDirs;
 
-    QThread *taskThread;
     QScopedPointer<QMutex> lock;
 
     void timerEvent(QTimerEvent *event) override;

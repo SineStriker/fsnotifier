@@ -7,6 +7,7 @@ using namespace JBFileWatcherUtils;
 #include <QFileInfo>
 
 JBCanonicalPathMap::JBCanonicalPathMap() {
+    qRegisterMetaType<JBCanonicalPathMap>();
 }
 
 JBCanonicalPathMap::JBCanonicalPathMap(const JBNavigableFileSet &optimizedRecursiveWatchRoots,

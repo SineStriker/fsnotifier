@@ -9,6 +9,8 @@ using namespace JBFileWatcherUtils;
 JBWatchRootsManager::JBWatchRootsManager(JBFileWatcher *watcher, QObject *parent)
     : QObject(parent), myFileWatcher(watcher), myLock(new QMutex()) {
     myWatcherRequiresUpdate = false;
+    connect(this, &JBWatchRootsManager::setRootsRequested, myFileWatcher,
+            &JBFileWatcher::setWatchRoots);
 }
 
 JBWatchRootsManager::~JBWatchRootsManager() {
@@ -18,6 +20,8 @@ QSet<JBWatchRootsManager::WatchRequest>
     JBWatchRootsManager::replaceWatchedRoots(const QList<WatchRequest> &requestsToRemove,
                                              const QStringList &recursiveRootsToAdd,
                                              const QStringList &flatRootsToAdd) {
+    QMutexLocker locker(myLock.data());
+
     QSet<WatchRequest> recursiveRequestsToRemove, flatRequestsToRemove;
     for (auto it = requestsToRemove.begin(); it != requestsToRemove.end(); ++it) {
         const auto &req = *it;
@@ -26,16 +30,12 @@ QSet<JBWatchRootsManager::WatchRequest>
 
     QSet<JBFileWatchRequest> result;
 
-    bool needUpdate = false;
-    {
-        QMutexLocker locker(myLock.data());
-        updateWatchRoots(ListToSet(recursiveRootsToAdd), recursiveRequestsToRemove, result,
-                         myRecursiveWatchRoots, true);
-        updateWatchRoots(ListToSet(flatRootsToAdd), flatRequestsToRemove, result, myFlatWatchRoots,
-                         false);
-        needUpdate = myWatcherRequiresUpdate;
-    }
-    if (needUpdate) {
+    updateWatchRoots(ListToSet(recursiveRootsToAdd), recursiveRequestsToRemove, result,
+                     myRecursiveWatchRoots, true);
+    updateWatchRoots(ListToSet(flatRootsToAdd), flatRequestsToRemove, result, myFlatWatchRoots,
+                     false);
+
+    if (myWatcherRequiresUpdate) {
         updateFileWatcher();
     }
 
@@ -43,6 +43,7 @@ QSet<JBWatchRootsManager::WatchRequest>
 }
 
 QSet<JBWatchRootsManager::WatchRequest> JBWatchRootsManager::currentWatchRequests() const {
+    QMutexLocker locker(myLock.data());
     QSet<WatchRequest> res;
     for (auto it = myRecursiveWatchRoots.begin(); it != myRecursiveWatchRoots.end(); ++it) {
         res.unite(it->second);
@@ -111,14 +112,12 @@ void JBWatchRootsManager::removeSymlink(int fileId) {
 }
 
 void JBWatchRootsManager::updateFileWatcher() {
-    QMutexLocker locker(myLock.data());
-
     if (!myWatcherRequiresUpdate) {
         return;
     }
     myWatcherRequiresUpdate = false;
 
-    myFileWatcher->setWatchRoots(createCanonicalPathMap(
+    emit setRootsRequested(createCanonicalPathMap(
         ListToSet(myFlatWatchRoots.toQMap().keys()), myOptimizedRecursiveWatchRoots.toQSet(),
         myPathMappings.toQList(), QDir::separator() == '\\'));
 }
