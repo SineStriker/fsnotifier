@@ -82,11 +82,13 @@ void FileSystemNotifier::removeAllPaths() {
 }
 
 QStringList FileSystemNotifier::recursivePaths() const {
-    return SetToList(d->recursivePaths());
+    auto paths = d->recursivePaths();
+    return SetToList(paths.unite(d->recursivePathsToAdd).subtract(d->recursivePathsToRemove));
 }
 
 QStringList FileSystemNotifier::flatPaths() const {
-    return SetToList(d->flatPaths());
+    auto paths = d->flatPaths();
+    return SetToList(paths.unite(d->flatPathsToAdd).subtract(d->flatPathsToRemove));
 }
 
 bool FileSystemNotifier::event(QEvent *event) {

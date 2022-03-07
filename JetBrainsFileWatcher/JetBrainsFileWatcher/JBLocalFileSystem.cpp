@@ -128,8 +128,10 @@ JBLocalFileSystem *JBLocalFileSystem::instance() {
 
 void JBLocalFileSystem::createWatchers(int n) {
     for (int i = 0; i < n; ++i) {
-        auto e = new JBNativeFileWatcherExecutor(this);
-        e->setObjectName("com.intellij.vfs.local.pluggableFileWatcher");
+        auto e = new JBNativeFileWatcherExecutor();
+        e->setParent(this);
+
+        // e->setObjectName("com.intellij.vfs.local.pluggableFileWatcher");
     }
 }
 

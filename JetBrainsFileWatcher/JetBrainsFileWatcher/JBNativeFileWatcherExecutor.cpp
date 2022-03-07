@@ -7,6 +7,7 @@
 JBNativeFileWatcherExecutor::JBNativeFileWatcherExecutor(QObject *parent)
     : JBExecutorService(parent) {
     s_watchers.insert(this);
+    jbDebug() << "[Watcher] Execute service" << s_watchers.size() << "init";
 
     m_taskThread = new QThread(this);
 
@@ -23,6 +24,8 @@ JBNativeFileWatcherExecutor::~JBNativeFileWatcherExecutor() {
         quit();
     }
     delete m_watcher;
+
+    jbDebug() << "[Watcher] Execute service" << s_watchers.size() << "quit";
     s_watchers.remove(this);
 }
 
@@ -35,12 +38,14 @@ void JBNativeFileWatcherExecutor::start(JBFileWatcherNotificationSink *sink) {
 
     emit initializeRequested(sink);
     while (!m_watcher->isActive()) {
+        // Wait for initialized
     }
 }
 
 void JBNativeFileWatcherExecutor::quit() {
     emit disposeRequested();
     while (m_watcher->isActive()) {
+        // Wait for disposed
     }
 
     m_taskThread->quit();

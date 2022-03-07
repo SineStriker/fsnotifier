@@ -115,15 +115,10 @@ void JBFileWatcherAdvancedNSink::notifyUserOnFailure(const QString &reason) {
 
 void JBFileWatcherAdvancedNSink::registerManualWatchRoots(QObject *key,
                                                           const QSet<QString> &roots) {
-    auto it = myManualWatchRoots.find(key);
-    if (it == myManualWatchRoots.end()) {
-        it = myManualWatchRoots.insert(key, {});
-    }
-    auto &rootSet = it.value();
-    rootSet.unite(roots);
+    myWatcher->registerManualWatchRoots(key, roots);
     notifyOnEvent(OTHER);
 }
 
 void JBFileWatcherAdvancedNSink::notifyOnEvent(const QString &path) {
-    Q_UNUSED(path)
+    myWatcher->notifyOnEvent(path);
 }

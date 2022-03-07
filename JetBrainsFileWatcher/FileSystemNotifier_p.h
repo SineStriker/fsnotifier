@@ -26,12 +26,13 @@ public:
     QSet<QString> flatPaths() const;
     QPair<QSet<QString>, QSet<QString>> paths() const;
 
+    FileSystemNotifier *const q; // q_ptr
+
     QSet<QString> recursivePathsToAdd;
     QSet<QString> flatPathsToAdd;
     QSet<QString> recursivePathsToRemove;
     QSet<QString> flatPathsToRemove;
 
-    FileSystemNotifier *q;
     JBLocalFileSystem *fs;
 
     int maxChangeEventId;

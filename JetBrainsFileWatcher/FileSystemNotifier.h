@@ -18,9 +18,11 @@ protected:
     FileSystemNotifier(FileSystemNotifierPrivate &d, QObject *parent = nullptr);
 
 public:
+    /* Note: it's recommended to call stopWatch() at end */
     void startWatch();
     void stopWatch();
 
+    /* Note: continuously added requests will be combined and sent to fsnotifier later */
     void addRecursivePaths(const QStringList &paths);
     void addFlatPaths(const QStringList &paths);
 
@@ -31,6 +33,7 @@ public:
     void removeAllFlatPaths();
     void removeAllPaths();
 
+    /* Paths currently watched */
     QStringList recursivePaths() const;
     QStringList flatPaths() const;
 
@@ -38,7 +41,7 @@ protected:
     bool event(QEvent *event) override;
 
 private:
-    QScopedPointer<FileSystemNotifierPrivate> d;
+    QScopedPointer<FileSystemNotifierPrivate> d; // d_ptr
 
     // Static
 public:

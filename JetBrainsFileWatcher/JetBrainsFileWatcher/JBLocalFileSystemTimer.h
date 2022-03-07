@@ -14,11 +14,13 @@ public:
     ~JBLocalFileSystemTimer();
 
 public:
+    // Thread unsafe
     void start();
+
+    // Thread unsafe
     void stop();
 
     bool isRunning() const;
-
     bool storeRefreshStatusToFiles();
 
 private:

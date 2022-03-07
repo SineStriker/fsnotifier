@@ -114,3 +114,16 @@ void JBFileWatcher::clear() {
     myPathMap = JBCanonicalPathMap();
     myManualWatchRoots.clear();
 }
+
+void JBFileWatcher::registerManualWatchRoots(QObject *key, const QSet<QString> &roots) {
+    auto it = myManualWatchRoots.find(key);
+    if (it == myManualWatchRoots.end()) {
+        it = myManualWatchRoots.insert(key, {});
+    }
+    auto &rootSet = it.value();
+    rootSet.unite(roots);
+}
+
+void JBFileWatcher::notifyOnEvent(const QString &path) {
+    Q_UNUSED(path)
+}

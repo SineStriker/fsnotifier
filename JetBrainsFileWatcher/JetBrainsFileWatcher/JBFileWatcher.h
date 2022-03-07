@@ -16,7 +16,10 @@ private:
     void init();
 
 public:
+    // Thread unsafe
     void start();
+
+    // Thread unsafe
     void dispose();
 
 public:
@@ -24,13 +27,20 @@ public:
     bool isSettingRoots() const;
 
     JBFileWatcherDirtyPaths getDirtyPaths() const;
+
+    // Thread unsafe
     QStringList getManualWatchRoots() const;
+
+    // Thread unsafe
     QStringList mapToAllSymlinks(const QString &reportedPath) const;
 
+    // Thread unsafe
     bool belongsToWatchRoots(const QString &reportedPath, bool isFile) const;
 
+    // Thread unsafe
     void setWatchRoots(const JBCanonicalPathMap &pathMap);
 
+    // Thread unsafe
     void notifyOnFailure(const QString &reason);
 
 private:
@@ -40,6 +50,9 @@ private:
     QScopedPointer<JBFileWatcherAdvancedNSink> myNotificationSink;
 
     void clear();
+
+    void registerManualWatchRoots(QObject *key, const QSet<QString> &roots);
+    void notifyOnEvent(const QString &path);
 };
 
 #endif // JBFILEWATCHER_H

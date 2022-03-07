@@ -44,14 +44,20 @@ private:
     QScopedPointer<QMutex> myLastChangedPathsLock;
 
 public:
+    // Thread unsafe
     void initialize(JBFileWatcherNotificationSink *sink);
+
+    // Thread unsafe
     void dispose();
 
     bool isActive()const;
     bool isShuttingDown() const;
     bool isSettingRoots() const;
 
+    // Thread unsafe
     void setWatchRoots(const QStringList &recursive, const QStringList &flat);
+
+    // Thread unsafe
     void waitForRootsSet();
 
 protected:

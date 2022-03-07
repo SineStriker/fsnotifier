@@ -39,7 +39,6 @@ private:
     JBFileWatcher *myWatcher;
 
     DirtyPaths myDirtyPaths;
-    QMap<QObject *, QSet<QString>> myManualWatchRoots;
 
     QScopedPointer<QMutex> myLock;
 };
