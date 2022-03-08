@@ -10,12 +10,16 @@ const QStringList WatcherOpStrings = {
 };
 
 QString JBFileWatcherUtils::WatcherOpToString(JBFileWatcherUtils::WatcherOp op) {
+    if (op < 0 || op >= WatcherOpStrings.size()) {
+        jbWarning() << "[Fetal] Unexpected op index" << op;
+        return WatcherOpStrings.front();
+    }
     return WatcherOpStrings.at(op);
 }
 
 JBFileWatcherUtils::WatcherOp JBFileWatcherUtils::StringToWatcherOp(const QString &str) {
     int index = WatcherOpStrings.indexOf(str);
-    if (str < 0) {
+    if (index < 0) {
         return UNKNOWN;
     }
     return static_cast<WatcherOp>(index);

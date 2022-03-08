@@ -84,6 +84,7 @@ bool JBNativeFileWatcher::startupProcess(bool restart) {
     }
 
     if (restart && !shutdownProcess()) {
+        notifyOnFailure("watcher.fail.to.restart");
         return false;
     }
 
@@ -111,6 +112,7 @@ bool JBNativeFileWatcher::shutdownProcess() {
         if (!myProcess->waitForFinished(500)) {
             jbWarning() << "[Watcher] File watcher is still alive, doing a force quit.";
             if (!killProcess()) {
+                notifyOnFailure("watcher.fail.to.shut");
                 return false;
             }
         }
@@ -235,7 +237,7 @@ void JBNativeFileWatcher::notifyTextAvailable(const QString &line,
     if (myLastOp == WatcherOp::UNKNOWN) {
         WatcherOp watcherOp = JBFileWatcherUtils::StringToWatcherOp(line);
         if (watcherOp == WatcherOp::UNKNOWN) {
-            jbWarning() << "[Watcher] Illegal watcher command: '" + line + "'";
+            jbWarning().noquote() << "[Watcher] Illegal watcher command: \'" + line + "\'";
             return;
         }
         if (watcherOp == WatcherOp::GIVEUP) {
