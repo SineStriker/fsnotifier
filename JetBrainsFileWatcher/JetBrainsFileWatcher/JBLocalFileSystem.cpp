@@ -26,7 +26,7 @@ JBLocalFileSystem::JBLocalFileSystem(QObject *parent)
     myWatchRootsManager = new JBWatchRootsManager(myWatcher.data(), this);
 
     connect(myWatcher.data(), &JBFileWatcher::failureOccured, this,
-            [&](const QString &reason) { emit failureOccured(reason); });
+            [this](const QString &reason) { emit failureOccured(reason); });
 
     connect(watchThread, &QThread::started, myWatcher.data(), &JBFileWatcher::start);
     connect(watchThread, &QThread::finished, myWatcher.data(), &JBFileWatcher::dispose);

@@ -112,7 +112,7 @@ void JBFileWatcher::notifyOnFailure(const QString &reason) {
     } else if (reason == "watcher.fail.to.shut") {
         jbWarning() << "[Watcher] Fsnotifier failed to shutdown.";
     }
-    emit failed(reason);
+    emit failureOccured(reason);
 }
 
 void JBFileWatcher::clear() {
