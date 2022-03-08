@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(stopButton, &QPushButton::clicked, this, [&]() { fs->stopWatch(); });
 
     connect(request1Button, &QPushButton::clicked, this, [&]() { //
-        fs->addRecursivePaths({"C:/"});
+        fs->addRecursivePaths({"E:/test1"});
     });
 
     connect(request2Button, &QPushButton::clicked, this, [&]() { //

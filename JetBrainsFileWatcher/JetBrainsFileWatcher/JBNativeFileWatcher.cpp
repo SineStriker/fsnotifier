@@ -182,17 +182,6 @@ QStringList JBNativeFileWatcher::screenUncRoots(const QStringList &roots, QStrin
 QString JBNativeFileWatcher::executable() const {
     return FSNotifierExecutable();
 }
-
-QString JBNativeFileWatcher::FSNotifierExecutable() {
-    QString name;
-#ifdef Q_OS_WINDOWS
-    name = "fsnotifier.exe";
-#else
-    name = "fsnotifier";
-#endif
-    return name;
-}
-
 void JBNativeFileWatcher::resetChangedPaths() {
     QMutexLocker locker(myLastChangedPathsLock.data());
 
@@ -339,4 +328,20 @@ void JBNativeFileWatcher::processChange(const QString &path, WatcherOp op) {
     default:
         jbWarning() << "[Watcher] Unexpected op:" << JBFileWatcherUtils::WatcherOpToString(op);
     }
+}
+
+QString JBNativeFileWatcher::fsnotifier_path =
+#ifdef Q_OS_WINDOWS
+    "fsnotifier.exe"
+#else
+    "fsnotifier"
+#endif
+    ;
+
+QString JBNativeFileWatcher::FSNotifierExecutable() {
+    return fsnotifier_path;
+}
+
+void JBNativeFileWatcher::setFsNotifierExecutablePath(const QString &path) {
+    fsnotifier_path = path;
 }

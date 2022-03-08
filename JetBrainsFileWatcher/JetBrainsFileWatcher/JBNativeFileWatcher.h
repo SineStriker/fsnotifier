@@ -50,7 +50,7 @@ public:
     // Thread unsafe
     void dispose();
 
-    bool isActive()const;
+    bool isActive() const;
     bool isShuttingDown() const;
     bool isSettingRoots() const;
 
@@ -64,8 +64,6 @@ protected:
     virtual QString executable() const;
 
 public:
-    static QString FSNotifierExecutable();
-
     virtual void resetChangedPaths();
 
 private:
@@ -88,6 +86,14 @@ private:
     void processRemap();
     void processUnwatchable();
     void processChange(const QString &path, JBFileWatcherUtils::WatcherOp op);
+
+public:
+    static QString FSNotifierExecutable();
+
+    static void setFsNotifierExecutablePath(const QString &path);
+
+private:
+    static QString fsnotifier_path;
 };
 
 #endif // JBNATIVEFILEWATCHER_H

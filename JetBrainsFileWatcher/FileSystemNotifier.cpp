@@ -119,3 +119,7 @@ FileSystemNotifier *FileSystemNotifier::instance() {
 QString FileSystemNotifier::ExecutableFilePath() {
     return JBNativeFileWatcher::FSNotifierExecutable();
 }
+
+void FileSystemNotifier::setExecutableFilePath(const QString &path) {
+    JBNativeFileWatcher::setFsNotifierExecutablePath(path);
+}

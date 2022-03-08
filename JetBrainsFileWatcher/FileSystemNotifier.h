@@ -48,6 +48,7 @@ public:
     static FileSystemNotifier *instance();
 
     static QString ExecutableFilePath();
+    static void setExecutableFilePath(const QString &path);
 
 private:
     static FileSystemNotifier *self;
