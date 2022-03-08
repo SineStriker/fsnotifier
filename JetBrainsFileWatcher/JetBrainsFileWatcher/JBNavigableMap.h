@@ -32,21 +32,13 @@ public:
     using reverse_iterator = typename _Mybase::reverse_iterator;
     using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
 
-    using _Alnode = typename _Mybase::_Alnode;
-    using _Alnode_traits = typename _Mybase::_Alnode_traits;
-
-#if _HAS_CXX17
-    using insert_return_type = _Insert_return_type<iterator, typename _Mybase::node_type>;
-#endif // _HAS_CXX17
-
     JBNavigableMap() : _Mybase(key_compare()) {
     }
 
     explicit JBNavigableMap(const allocator_type &_Al) : _Mybase(key_compare(), _Al) {
     }
 
-    JBNavigableMap(const _Mybase &_Right)
-        : _Mybase(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {
+    JBNavigableMap(const _Mybase &_Right) : _Mybase(_Right) {
     }
 
     JBNavigableMap(const _Mybase &_Right, const allocator_type &_Al) : _Mybase(_Right, _Al) {
@@ -85,15 +77,14 @@ public:
         return *this;
     }
 
-    JBNavigableMap(_Mybase &&_Right) : _Mybase(_STD move(_Right)) {
+    JBNavigableMap(_Mybase &&_Right) : _Mybase(std::move(_Right)) {
     }
 
-    JBNavigableMap(_Mybase &&_Right, const allocator_type &_Al) : _Mybase(_STD move(_Right), _Al) {
+    JBNavigableMap(_Mybase &&_Right, const allocator_type &_Al) : _Mybase(std::move(_Right), _Al) {
     }
 
-    JBNavigableMap &operator=(_Mybase &&_Right) noexcept(
-        _Alnode_traits::is_always_equal::value &&is_nothrow_move_assignable_v<_Pr>) {
-        _Mybase::operator=(_STD move(_Right));
+    JBNavigableMap &operator=(_Mybase &&_Right) {
+        _Mybase::operator=(std::move(_Right));
         return *this;
     }
 

@@ -29,17 +29,13 @@ public:
     using reverse_iterator = typename _Mybase::reverse_iterator;
     using const_reverse_iterator = typename _Mybase::const_reverse_iterator;
 
-    using _Alnode = typename _Mybase::_Alnode;
-    using _Alnode_traits = typename _Mybase::_Alnode_traits;
-
     JBNavigableSet() : _Mybase(key_compare()) {
     }
 
     explicit JBNavigableSet(const allocator_type &_Al) : _Mybase(key_compare(), _Al) {
     }
 
-    JBNavigableSet(const _Mybase &_Right)
-        : _Mybase(_Right, _Alnode_traits::select_on_container_copy_construction(_Right._Getal())) {
+    JBNavigableSet(const _Mybase &_Right) : _Mybase(_Right) {
     }
 
     JBNavigableSet(const _Mybase &_Right, const allocator_type &_Al) : _Mybase(_Right, _Al) {
@@ -78,15 +74,14 @@ public:
         return *this;
     }
 
-    JBNavigableSet(_Mybase &&_Right) : _Mybase(_STD move(_Right)) {
+    JBNavigableSet(_Mybase &&_Right) : _Mybase(std::move(_Right)) {
     }
 
-    JBNavigableSet(_Mybase &&_Right, const allocator_type &_Al) : _Mybase(_STD move(_Right), _Al) {
+    JBNavigableSet(_Mybase &&_Right, const allocator_type &_Al) : _Mybase(std::move(_Right), _Al) {
     }
 
-    JBNavigableSet &operator=(_Mybase &&_Right) noexcept(
-        _Alnode_traits::is_always_equal::value &&is_nothrow_move_assignable_v<_Pr>) {
-        _Mybase::operator=(_STD move(_Right));
+    JBNavigableSet &operator=(_Mybase &&_Right) {
+        _Mybase::operator=(std::move(_Right));
         return *this;
     }
 
@@ -241,7 +236,7 @@ public:
     JBNavigableSet &intersect(const JBNavigableSet &other) {
         JBNavigableSet copy1;
         JBNavigableSet copy2;
-        if (size() <= other.size()) {
+        if (this->size() <= other.size()) {
             copy1 = *this;
             copy2 = other;
         } else {
@@ -258,7 +253,7 @@ public:
     }
 
     bool intersects(const JBNavigableSet<T> &other) const {
-        const bool otherIsBigger = other.size() > size();
+        const bool otherIsBigger = other.size() > this->size();
         const JBNavigableSet &smallestSet = otherIsBigger ? *this : other;
         const JBNavigableSet &biggestSet = otherIsBigger ? other : *this;
 
