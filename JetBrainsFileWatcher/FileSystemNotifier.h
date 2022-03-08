@@ -57,6 +57,7 @@ private:
 signals:
     void changed(const QStringList &path);
     void renamed(const QStringList &path);
+    void failed(const QString &reason);
 };
 
 #endif // FILESYSTEMNOTIFIER_H

@@ -25,6 +25,9 @@ void FileSystemNotifierPrivate::init() {
     q->connect(fs, &JBLocalFileSystem::recursivePathsDirty, q, [&](const QStringList &paths) { //
         emit q->renamed(listPathToNativeSeparators(paths));
     });
+    q->connect(fs, &JBLocalFileSystem::failureOccured, q, [&](const QString &reason) { //
+        emit q->failed(reason);
+    });
 }
 
 void FileSystemNotifierPrivate::postChange() {

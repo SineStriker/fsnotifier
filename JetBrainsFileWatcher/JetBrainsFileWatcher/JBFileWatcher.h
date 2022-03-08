@@ -53,6 +53,9 @@ private:
 
     void registerManualWatchRoots(QObject *key, const QSet<QString> &roots);
     void notifyOnEvent(const QString &path);
+
+signals:
+    void failureOccured(const QString &reason);
 };
 
 #endif // JBFILEWATCHER_H

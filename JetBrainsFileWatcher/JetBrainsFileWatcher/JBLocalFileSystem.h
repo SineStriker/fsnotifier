@@ -66,6 +66,7 @@ signals:
     void pathsDirty(const QStringList &paths);
     void flatDirsDirty(const QStringList &paths);
     void recursivePathsDirty(const QStringList &paths);
+    void failureOccured(const QString &reason);
 };
 
 #endif // JBLOCALFILESYSTEM_H
