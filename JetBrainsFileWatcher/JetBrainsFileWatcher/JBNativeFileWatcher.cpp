@@ -277,7 +277,7 @@ void JBNativeFileWatcher::notifyOnFailure(const QString &reason) {
 
 bool JBNativeFileWatcher::event(QEvent *event) {
     if (event->type() == QEvent::Destroy) {
-        handleDestroyed();
+        prepareToDestroy();
     }
     return JBPluggableFileWatcher::event(event);
 }
@@ -335,7 +335,7 @@ void JBNativeFileWatcher::processChange(const QString &path, WatcherOp op) {
     }
 }
 
-void JBNativeFileWatcher::handleDestroyed() {
+void JBNativeFileWatcher::prepareToDestroy() {
     if (myProcess->state() == QProcess::Running) {
         dispose();
     }
