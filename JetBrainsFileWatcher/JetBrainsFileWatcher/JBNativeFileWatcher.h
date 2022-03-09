@@ -26,6 +26,7 @@ private:
     QAtomicInt myStartAttemptCount;
     QAtomicInteger<bool> myIsShuttingDown;
     QAtomicInt mySettingRoots;
+    QAtomicInteger<bool> myIsSendingRoots;
 
     QStringList myRecursiveWatchRoots;
     QStringList myFlatWatchRoots;
@@ -51,7 +52,8 @@ public:
     void dispose();
 
     bool isActive() const;
-    bool isShuttingDown() const;
+    bool isSendingRoots() const;
+
     bool isSettingRoots() const;
 
     // Thread unsafe

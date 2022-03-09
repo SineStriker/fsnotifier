@@ -21,9 +21,9 @@ public:
     typedef JBFileWatchRequest WatchRequest;
 
 public:
-    QSet<WatchRequest> replaceWatchedRoots(const QList<WatchRequest> &requestsToRemove,
-                                           const QStringList &recursiveRootsToAdd,
-                                           const QStringList &flatRootsToAdd);
+    bool replaceWatchedRoots(const QList<WatchRequest> &requestsToRemove,
+                             const QStringList &recursiveRootsToAdd,
+                             const QStringList &flatRootsToAdd);
 
     QSet<WatchRequest> currentWatchRequests() const;
 

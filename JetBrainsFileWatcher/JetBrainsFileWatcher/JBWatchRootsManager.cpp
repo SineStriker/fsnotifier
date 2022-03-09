@@ -16,10 +16,9 @@ JBWatchRootsManager::JBWatchRootsManager(JBFileWatcher *watcher, QObject *parent
 JBWatchRootsManager::~JBWatchRootsManager() {
 }
 
-QSet<JBWatchRootsManager::WatchRequest>
-    JBWatchRootsManager::replaceWatchedRoots(const QList<WatchRequest> &requestsToRemove,
-                                             const QStringList &recursiveRootsToAdd,
-                                             const QStringList &flatRootsToAdd) {
+bool JBWatchRootsManager::replaceWatchedRoots(const QList<WatchRequest> &requestsToRemove,
+                                              const QStringList &recursiveRootsToAdd,
+                                              const QStringList &flatRootsToAdd) {
     QMutexLocker locker(myLock.data());
 
     QSet<WatchRequest> recursiveRequestsToRemove, flatRequestsToRemove;
@@ -35,11 +34,13 @@ QSet<JBWatchRootsManager::WatchRequest>
     updateWatchRoots(ListToSet(flatRootsToAdd), flatRequestsToRemove, result, myFlatWatchRoots,
                      false);
 
+    bool updated = myWatcherRequiresUpdate;
     if (myWatcherRequiresUpdate) {
         updateFileWatcher();
     }
 
-    return result;
+    Q_UNUSED(result)
+    return updated;
 }
 
 QSet<JBWatchRootsManager::WatchRequest> JBWatchRootsManager::currentWatchRequests() const {

@@ -25,9 +25,9 @@ public:
     bool disposed() const;
 
     JBFileWatcher *fileWatcher() const;
-    QList<WatchRequest> replaceWatchedRoots(const QList<WatchRequest> &watchRequestsToRemove,
-                                            const QStringList &recursiveRootsToAdd,
-                                            const QStringList &flatRootsToAdd);
+    bool replaceWatchedRoots(const QList<WatchRequest> &watchRequestsToRemove,
+                             const QStringList &recursiveRootsToAdd,
+                             const QStringList &flatRootsToAdd);
     QList<WatchRequest> currentWatchedRoots() const;
 
     void markSuspiciousFilesDirty(const QStringList &paths);
@@ -59,10 +59,6 @@ private:
     void destroyWatchers();
 
 signals:
-    void replaceRequested(const QList<JBFileWatchRequest> &watchRequestsToRemove,
-                          const QStringList &recursiveRootsToAdd,
-                          const QStringList &flatRootsToAdd);
-
     void pathsDirty(const QStringList &paths);
     void flatDirsDirty(const QStringList &paths);
     void recursivePathsDirty(const QStringList &paths);

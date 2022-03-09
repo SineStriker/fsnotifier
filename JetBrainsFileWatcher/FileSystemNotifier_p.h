@@ -20,6 +20,8 @@ public:
     void postChange();
     void commitChange();
 
+    bool waitForPathsSet(int msecs);
+
     void clearCachedPaths();
 
     QSet<QString> recursivePaths() const;
@@ -35,9 +37,12 @@ public:
 
     JBLocalFileSystem *fs;
 
+    bool hasChangeEvent;
     int maxChangeEventId;
 
-    QStringList listPathToNativeSeparators(const QStringList &paths);
+    bool rootsNeedUpdate;
+
+    static QStringList listPathToNativeSeparators(const QStringList &paths);
 };
 
 #endif // FILESYSTEMNOTIFIER_P_H

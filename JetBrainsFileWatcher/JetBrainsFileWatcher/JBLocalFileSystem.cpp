@@ -26,7 +26,9 @@ JBLocalFileSystem::JBLocalFileSystem(QObject *parent)
     myWatchRootsManager = new JBWatchRootsManager(myWatcher.data(), this);
 
     connect(myWatcher.data(), &JBFileWatcher::failureOccured, this,
-            [this](const QString &reason) { emit failureOccured(reason); });
+            [this](const QString &reason) { //
+                emit failureOccured(reason);
+            });
 
     connect(watchThread, &QThread::started, myWatcher.data(), &JBFileWatcher::start);
     connect(watchThread, &QThread::finished, myWatcher.data(), &JBFileWatcher::dispose);
@@ -84,15 +86,14 @@ JBFileWatcher *JBLocalFileSystem::fileWatcher() const {
     return myWatcher.data();
 }
 
-QList<JBLocalFileSystem::WatchRequest>
-    JBLocalFileSystem::replaceWatchedRoots(const QList<WatchRequest> &watchRequestsToRemove,
-                                           const QStringList &recursiveRootsToAdd,
-                                           const QStringList &flatRootsToAdd) {
+bool JBLocalFileSystem::replaceWatchedRoots(const QList<WatchRequest> &watchRequestsToRemove,
+                                            const QStringList &recursiveRootsToAdd,
+                                            const QStringList &flatRootsToAdd) {
     if (disposed()) {
         return {};
     }
-    return JBFileWatcherUtils::SetToList(myWatchRootsManager->replaceWatchedRoots(
-        watchRequestsToRemove, recursiveRootsToAdd, flatRootsToAdd));
+    return myWatchRootsManager->replaceWatchedRoots(watchRequestsToRemove, recursiveRootsToAdd,
+                                                    flatRootsToAdd);
 }
 
 QList<JBLocalFileSystem::WatchRequest> JBLocalFileSystem::currentWatchedRoots() const {

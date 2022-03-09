@@ -19,10 +19,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     connect(request1Button, &QPushButton::clicked, this, [&]() { //
         fs->addRecursivePaths({"E:/test1"});
+        fs->waitForPathsSet();
     });
 
     connect(request2Button, &QPushButton::clicked, this, [&]() { //
         fs->removeAllPaths();
+        fs->waitForPathsSet();
     });
 
     connect(fs, &FileSystemNotifier::changed, [](const QStringList &paths) {

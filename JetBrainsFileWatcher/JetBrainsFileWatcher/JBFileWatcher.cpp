@@ -58,6 +58,28 @@ bool JBFileWatcher::isSettingRoots() const {
     return false;
 }
 
+bool JBFileWatcher::isActive() const {
+    const auto &watchers = JBNativeFileWatcherExecutor::watchers();
+    for (auto it = watchers.begin(); it != watchers.end(); ++it) {
+        auto watcher = *it;
+        if (watcher->watcher()->isActive()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool JBFileWatcher::isSendingRoots() const {
+    const auto &watchers = JBNativeFileWatcherExecutor::watchers();
+    for (auto it = watchers.begin(); it != watchers.end(); ++it) {
+        auto watcher = *it;
+        if (watcher->watcher()->isSendingRoots()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 JBFileWatcherDirtyPaths JBFileWatcher::getDirtyPaths() const {
     return myNotificationSink->getDirtyPaths();
 }

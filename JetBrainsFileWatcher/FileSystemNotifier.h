@@ -37,6 +37,12 @@ public:
     QStringList recursivePaths() const;
     QStringList flatPaths() const;
 
+    /* If this function is called right after paths are set,
+     * paths will be sent to subprocess directly and block until subprocess receives.
+     * Otherwise, paths will be sent to subprocess later.
+     */
+    bool waitForPathsSet(int msecs = 30000);
+
 protected:
     bool event(QEvent *event) override;
 

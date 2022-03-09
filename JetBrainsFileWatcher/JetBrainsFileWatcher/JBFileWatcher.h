@@ -26,6 +26,9 @@ public:
     bool isOperational() const;
     bool isSettingRoots() const;
 
+    bool isActive() const;
+    bool isSendingRoots() const;
+
     JBFileWatcherDirtyPaths getDirtyPaths() const;
 
     // Thread unsafe

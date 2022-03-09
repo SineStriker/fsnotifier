@@ -91,6 +91,10 @@ QStringList FileSystemNotifier::flatPaths() const {
     return SetToList(paths.unite(d->flatPathsToAdd).subtract(d->flatPathsToRemove));
 }
 
+bool FileSystemNotifier::waitForPathsSet(int msecs) {
+    return d->waitForPathsSet(msecs);
+}
+
 bool FileSystemNotifier::event(QEvent *event) {
     if (event->type() == QEvent::Timer) {
         QTimerEvent *e = static_cast<QTimerEvent *>(event);

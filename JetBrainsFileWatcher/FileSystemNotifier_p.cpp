@@ -7,7 +7,9 @@ using namespace JBFileWatcherUtils;
 #include <QCoreApplication>
 
 FileSystemNotifierPrivate::FileSystemNotifierPrivate(FileSystemNotifier *q) : q(q), fs(nullptr) {
+    hasChangeEvent = false;
     maxChangeEventId = 0;
+    rootsNeedUpdate = false;
 }
 
 FileSystemNotifierPrivate::~FileSystemNotifierPrivate() {
@@ -16,35 +18,70 @@ FileSystemNotifierPrivate::~FileSystemNotifierPrivate() {
 void FileSystemNotifierPrivate::init() {
     fs = new JBLocalFileSystem(q);
 
-    q->connect(fs, &JBLocalFileSystem::pathsDirty, q, [&](const QStringList &paths) { //
+    q->connect(fs, &JBLocalFileSystem::pathsDirty, q, [this](const QStringList &paths) { //
         emit q->changed(listPathToNativeSeparators(paths));
     });
-    q->connect(fs, &JBLocalFileSystem::flatDirsDirty, q, [&](const QStringList &paths) { //
+    q->connect(fs, &JBLocalFileSystem::flatDirsDirty, q, [this](const QStringList &paths) { //
         emit q->changed(listPathToNativeSeparators(paths));
     });
-    q->connect(fs, &JBLocalFileSystem::recursivePathsDirty, q, [&](const QStringList &paths) { //
+    q->connect(fs, &JBLocalFileSystem::recursivePathsDirty, q, [this](const QStringList &paths) { //
         emit q->renamed(listPathToNativeSeparators(paths));
     });
-    q->connect(fs, &JBLocalFileSystem::failureOccured, q, [&](const QString &reason) { //
+    q->connect(fs, &JBLocalFileSystem::failureOccured, q, [this](const QString &reason) { //
         emit q->failed(reason);
     });
 }
 
 void FileSystemNotifierPrivate::postChange() {
+    hasChangeEvent = true;
     QCoreApplication::postEvent(q, new QTimerEvent(-(maxChangeEventId + 1)));
 }
 
 void FileSystemNotifierPrivate::commitChange() {
-    QList<JB::WatchRequest> requestsToRemove;
-    for (auto it = recursivePathsToRemove.begin(); it != recursivePathsToRemove.end(); ++it) {
-        requestsToRemove.append(JB::WatchRequest(*it, true));
+    rootsNeedUpdate = false;
+    if (!recursivePathsToRemove.isEmpty() || !flatPathsToRemove.isEmpty() ||
+        !recursivePathsToAdd.isEmpty() || flatPathsToAdd.isEmpty()) {
+        QList<JB::WatchRequest> requestsToRemove;
+        for (auto it = recursivePathsToRemove.begin(); it != recursivePathsToRemove.end(); ++it) {
+            requestsToRemove.append(JB::WatchRequest(*it, true));
+        }
+        for (auto it = flatPathsToRemove.begin(); it != flatPathsToRemove.end(); ++it) {
+            requestsToRemove.append(JB::WatchRequest(*it, false));
+        }
+        rootsNeedUpdate = fs->replaceWatchedRoots(requestsToRemove, SetToList(recursivePathsToAdd),
+                                                  SetToList(flatPathsToAdd));
+        clearCachedPaths();
     }
-    for (auto it = flatPathsToRemove.begin(); it != flatPathsToRemove.end(); ++it) {
-        requestsToRemove.append(JB::WatchRequest(*it, false));
+    hasChangeEvent = false;
+}
+
+bool FileSystemNotifierPrivate::waitForPathsSet(int msecs) {
+    if (!hasChangeEvent) {
+        return true;
     }
-    fs->replaceWatchedRoots(requestsToRemove, SetToList(recursivePathsToAdd),
-                            SetToList(flatPathsToAdd));
-    clearCachedPaths();
+    maxChangeEventId++;
+    commitChange(); // if roots need update, signal must be sent to watcher and d
+
+    if (!rootsNeedUpdate) {
+        return true;
+    }
+
+    QElapsedTimer stopWatch;
+    stopWatch.start();
+
+    // Wait for sending roots command to fsnotifier
+    while (!fs->fileWatcher()->isSendingRoots()) {
+        if (stopWatch.elapsed() > msecs) {
+            return false;
+        }
+    }
+    // Wait for fsnotifier to feedback
+    while (fs->fileWatcher()->isSettingRoots()) {
+        if (stopWatch.elapsed() > msecs) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void FileSystemNotifierPrivate::clearCachedPaths() {

@@ -13,6 +13,7 @@ JBNativeFileWatcher::JBNativeFileWatcher(QObject *parent)
     myNotificationSink = nullptr;
     myLastChangedPaths.resize(2);
     myIsActive = false;
+    myIsSendingRoots = false;
 }
 
 JBNativeFileWatcher::~JBNativeFileWatcher() {
@@ -54,6 +55,10 @@ void JBNativeFileWatcher::dispose() {
 
 bool JBNativeFileWatcher::isActive() const {
     return myIsActive.loadRelaxed();
+}
+
+bool JBNativeFileWatcher::isSendingRoots() const {
+    return myIsSendingRoots.loadRelaxed();
 }
 
 bool JBNativeFileWatcher::isSettingRoots() const {
@@ -122,6 +127,7 @@ void JBNativeFileWatcher::setWatchRootsCore(QStringList recursive, QStringList f
         return;
     }
 
+    myIsSendingRoots = true;
 
     mySettingRoots++;
     myRecursiveWatchRoots = recursive;
@@ -162,6 +168,8 @@ void JBNativeFileWatcher::setWatchRootsCore(QStringList recursive, QStringList f
     if (!flag) {
         jbWarning() << "[Watcher] Error setting roots.";
     }
+
+    myIsSendingRoots = false;
 }
 
 QStringList JBNativeFileWatcher::screenUncRoots(const QStringList &roots, QStringList &ignored) {
@@ -237,9 +245,11 @@ void JBNativeFileWatcher::notifyTextAvailable(const QString &line,
             return;
         }
         if (watcherOp == WatcherOp::GIVEUP) {
+            jbDebug() << "[Watcher] Output: GiveUp";
             notifyOnFailure("watcher.gave.up");
             myIsShuttingDown = true;
         } else if (watcherOp == WatcherOp::RESET) {
+            jbDebug() << "[Watcher] Output: Reset";
             myNotificationSink->notifyReset("");
         } else {
             myLastOp = watcherOp;
@@ -250,8 +260,10 @@ void JBNativeFileWatcher::notifyTextAvailable(const QString &line,
     } else if (myLastOp == WatcherOp::REMAP || myLastOp == WatcherOp::UNWATCHEABLE) {
         if (line == '#') {
             if (myLastOp == WatcherOp::REMAP) {
+                jbDebug() << "[Watcher] Output: Remap";
                 processRemap();
             } else {
+                jbDebug() << "[Watcher] Output: Unwatchable";
                 mySettingRoots--;
                 processUnwatchable();
             }
