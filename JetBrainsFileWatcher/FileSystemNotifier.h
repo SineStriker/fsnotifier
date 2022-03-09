@@ -40,7 +40,7 @@ public:
 protected:
     bool event(QEvent *event) override;
 
-private:
+protected:
     QScopedPointer<FileSystemNotifierPrivate> d; // d_ptr
 
     // Static
