@@ -107,7 +107,7 @@ void JBFileWatcher::notifyOnFailure(const QString &reason) {
         jbWarning() << "[Watcher] Fsnotifier gave up.";
     } else if (reason == "watcher.bailed.out.10x") {
         jbWarning() << "[Watcher] Fsnotifier failed for more than 10 times.";
-    } else if (reason == "watcher.fail.to.shut") {
+    } else if (reason == "watcher.failed.to.shut") {
         jbWarning() << "[Watcher] Fsnotifier failed to shutdown.";
     }
     emit failureOccured(reason);

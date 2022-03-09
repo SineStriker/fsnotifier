@@ -108,7 +108,7 @@ bool JBNativeFileWatcher::shutdownProcess() {
         if (!myProcess->waitForFinished(500)) {
             jbWarning() << "[Watcher] File watcher is still alive, doing a force quit.";
             if (!killProcess()) {
-                notifyOnFailure("watcher.fail.to.shut");
+                notifyOnFailure("watcher.failed.to.shut");
                 return false;
             }
         }
