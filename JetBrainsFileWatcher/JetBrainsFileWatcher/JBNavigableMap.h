@@ -14,7 +14,6 @@ class JBNavigableMap : public std::map<_Kty, _Ty, _Pr, _Alloc> {
     // ordered red-black tree of {key, mapped} values, unique keys
 public:
     using _Mybase = std::map<_Kty, _Ty, _Pr, _Alloc>;
-    using _Nodeptr = typename _Mybase::_Nodeptr;
     using key_type = _Kty;
     using mapped_type = _Ty;
     using key_compare = _Pr;

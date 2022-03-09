@@ -10,9 +10,12 @@ JBFileWatcherNotificationSink::~JBFileWatcherNotificationSink() {
 
 void JBFileWatcherNotificationSink::notifyManualWatchRoots(JBPluggableFileWatcher *watcher,
                                                            const QStringList &roots) {
+    Q_UNUSED(watcher)
+    Q_UNUSED(roots)
 }
 
 void JBFileWatcherNotificationSink::notifyMapping(const QList<QPair<QString, QString>> &mapping) {
+    Q_UNUSED(mapping)
 }
 
 void JBFileWatcherNotificationSink::notifyDirtyPath(const QString &path) {

@@ -16,9 +16,6 @@ JBNativeFileWatcher::JBNativeFileWatcher(QObject *parent)
 }
 
 JBNativeFileWatcher::~JBNativeFileWatcher() {
-    if (myProcess->state() == QProcess::Running) {
-        dispose();
-    }
 }
 
 void JBNativeFileWatcher::initialize(JBFileWatcherNotificationSink *sink) {
@@ -84,7 +81,6 @@ bool JBNativeFileWatcher::startupProcess(bool restart) {
     }
 
     if (restart && !shutdownProcess()) {
-        notifyOnFailure("watcher.fail.to.restart");
         return false;
     }
 
@@ -279,6 +275,13 @@ void JBNativeFileWatcher::notifyOnFailure(const QString &reason) {
     myNotificationSink->notifyUserOnFailure(reason);
 }
 
+bool JBNativeFileWatcher::event(QEvent *event) {
+    if (event->type() == QEvent::Destroy) {
+        handleDestroyed();
+    }
+    return JBPluggableFileWatcher::event(event);
+}
+
 void JBNativeFileWatcher::processRemap() {
     QList<QPair<QString, QString>> map;
     for (int i = 0; i < myLines.size() - 1; i += 2) {
@@ -329,6 +332,12 @@ void JBNativeFileWatcher::processChange(const QString &path, WatcherOp op) {
 
     default:
         jbWarning() << "[Watcher] Unexpected op:" << JBFileWatcherUtils::WatcherOpToString(op);
+    }
+}
+
+void JBNativeFileWatcher::handleDestroyed() {
+    if (myProcess->state() == QProcess::Running) {
+        dispose();
     }
 }
 
