@@ -84,14 +84,10 @@ protected:
     void notifyErrorOccured(QProcess::ProcessError error) override;
     void notifyOnFailure(const QString &reason) override;
 
-    bool event(QEvent *event) override;
-
 private:
     void processRemap();
     void processUnwatchable();
     void processChange(const QString &path, JBFileWatcherUtils::WatcherOp op);
-
-    void prepareToDestroy();
 
 public:
     static QString FSNotifierExecutable();

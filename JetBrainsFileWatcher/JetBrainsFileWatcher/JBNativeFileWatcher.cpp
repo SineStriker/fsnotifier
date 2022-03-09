@@ -287,13 +287,6 @@ void JBNativeFileWatcher::notifyOnFailure(const QString &reason) {
     myNotificationSink->notifyUserOnFailure(reason);
 }
 
-bool JBNativeFileWatcher::event(QEvent *event) {
-    if (event->type() == QEvent::Destroy) {
-        prepareToDestroy();
-    }
-    return JBPluggableFileWatcher::event(event);
-}
-
 void JBNativeFileWatcher::processRemap() {
     QList<QPair<QString, QString>> map;
     for (int i = 0; i < myLines.size() - 1; i += 2) {
@@ -344,12 +337,6 @@ void JBNativeFileWatcher::processChange(const QString &path, WatcherOp op) {
 
     default:
         jbWarning() << "[Watcher] Unexpected op:" << JBFileWatcherUtils::WatcherOpToString(op);
-    }
-}
-
-void JBNativeFileWatcher::prepareToDestroy() {
-    if (myProcess->state() == QProcess::Running) {
-        dispose();
     }
 }
 

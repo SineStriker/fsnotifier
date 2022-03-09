@@ -22,6 +22,8 @@ public:
     void startWatch();
     void stopWatch();
 
+    bool isWatching() const;
+
     /* Note: continuously added requests will be combined and sent to fsnotifier later */
     void addRecursivePaths(const QStringList &paths);
     void addFlatPaths(const QStringList &paths);

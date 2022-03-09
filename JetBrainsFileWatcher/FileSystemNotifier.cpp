@@ -30,6 +30,10 @@ void FileSystemNotifier::stopWatch() {
     d->fs->dispose();
 }
 
+bool FileSystemNotifier::isWatching() const {
+    return !d->fs->disposed();
+}
+
 void FileSystemNotifier::addRecursivePaths(const QStringList &paths) {
     auto set = ListToSet(paths);
     d->recursivePathsToAdd.unite(set);
