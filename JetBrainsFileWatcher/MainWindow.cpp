@@ -2,7 +2,10 @@
 #include "JetBrainsFileWatcher/JBFileWatcherAdvancedNSink.h"
 
 #include <QApplication>
+#include <QDateTime>
 #include <QDebug>
+#include <QFile>
+#include <QFileInfo>
 #include <QThread>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
@@ -18,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(stopButton, &QPushButton::clicked, this, [&]() { fs->stopWatch(); });
 
     connect(request1Button, &QPushButton::clicked, this, [&]() { //
-        fs->addRecursivePaths({"C:/Windows"});
+        fs->addFlatPaths({"E:/test1"});
         fs->waitForPathsSet();
     });
 
@@ -27,14 +30,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         fs->waitForPathsSet();
     });
 
-    connect(fs, &FileSystemNotifier::changed, [](const QStringList &paths) {
+    connect(fs, &FileSystemNotifier::changed, this, [](const QStringList &paths) {
         qDebug() << "[Paths changed]";
         std::for_each(paths.begin(), paths.end(), [](const QString &path) { //
             qDebug().noquote() << path;
         });
     });
 
-    connect(fs, &FileSystemNotifier::renamed, [](const QStringList &paths) {
+    connect(fs, &FileSystemNotifier::renamed, this, [](const QStringList &paths) {
         qDebug() << "[Paths renamed]";
         std::for_each(paths.begin(), paths.end(), [](const QString &path) { //
             qDebug().noquote() << path;

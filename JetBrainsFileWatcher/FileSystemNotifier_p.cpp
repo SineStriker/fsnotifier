@@ -39,7 +39,7 @@ void FileSystemNotifierPrivate::postChange() {
 void FileSystemNotifierPrivate::commitChange() {
     rootsNeedUpdate = false;
     if (!recursivePathsToRemove.isEmpty() || !flatPathsToRemove.isEmpty() ||
-        !recursivePathsToAdd.isEmpty() || flatPathsToAdd.isEmpty()) {
+        !recursivePathsToAdd.isEmpty() || !flatPathsToAdd.isEmpty()) {
         QList<JB::WatchRequest> requestsToRemove;
         for (auto it = recursivePathsToRemove.begin(); it != recursivePathsToRemove.end(); ++it) {
             requestsToRemove.append(JB::WatchRequest(*it, true));
