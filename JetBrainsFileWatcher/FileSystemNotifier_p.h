@@ -38,7 +38,6 @@ public:
     JBLocalFileSystem *fs;
 
     bool hasChangeEvent;
-    int maxChangeEventId;
 
     bool rootsNeedUpdate;
 

@@ -8,7 +8,6 @@ using namespace JBFileWatcherUtils;
 
 FileSystemNotifierPrivate::FileSystemNotifierPrivate(FileSystemNotifier *q) : q(q), fs(nullptr) {
     hasChangeEvent = false;
-    maxChangeEventId = 0;
     rootsNeedUpdate = false;
 }
 
@@ -34,7 +33,7 @@ void FileSystemNotifierPrivate::init() {
 
 void FileSystemNotifierPrivate::postChange() {
     hasChangeEvent = true;
-    QCoreApplication::postEvent(q, new QTimerEvent(-(maxChangeEventId + 1)));
+    QCoreApplication::postEvent(q, new QTimerEvent(-1));
 }
 
 void FileSystemNotifierPrivate::commitChange() {
@@ -59,7 +58,6 @@ bool FileSystemNotifierPrivate::waitForPathsSet(int msecs) {
     if (!hasChangeEvent) {
         return true;
     }
-    maxChangeEventId++;
     commitChange(); // if roots need update, signal must be sent to watcher and d
 
     if (!rootsNeedUpdate) {

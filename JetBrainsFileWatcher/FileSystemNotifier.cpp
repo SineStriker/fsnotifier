@@ -104,8 +104,7 @@ bool FileSystemNotifier::event(QEvent *event) {
         QTimerEvent *e = static_cast<QTimerEvent *>(event);
         int id = -e->timerId();
         if (id > 0) {
-            if (id > d->maxChangeEventId) {
-                d->maxChangeEventId = id;
+            if (d->hasChangeEvent) {
                 d->commitChange();
                 return true;
             }
