@@ -31,8 +31,9 @@ QPair<QStringList, QStringList> JBCanonicalPathMap::getCanonicalWatchRoots() {
         for (auto it = unionRoots.begin(); it != unionRoots.end(); ++it) {
             const QString &root = *it;
             QFileInfo info(root);
-            QString canonicalRoot =
-                info.isSymLink() ? info.symLinkTarget() : info.canonicalFilePath();
+            QString canonicalRoot = info.isSymLink()
+                                        ? info.symLinkTarget()
+                                        : QDir::toNativeSeparators(info.canonicalFilePath());
             if (!canonicalRoot.isEmpty() &&
                 OSAgnosticPathUtil::COMPARATOR_compare(canonicalRoot, root) != 0) {
                 canonicalPathMappings.insert(root, canonicalRoot);

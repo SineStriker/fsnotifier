@@ -64,7 +64,7 @@ void JBFileWatcherAdvancedNSink::notifyPathCreatedOrDeleted(const QString &path)
         for (auto it = paths.begin(); it != paths.end(); ++it) {
             const QString &p = *it;
             myDirtyPaths.addDirtyPathRecursive(p);
-            QString parentPath = QFileInfo(p).absolutePath();
+            QString parentPath = JBFileWatcherUtils::PathUtil::getParentPath(p);
             if (!parentPath.isEmpty()) {
                 myDirtyPaths.addDirtyPath(parentPath);
             }
@@ -99,11 +99,10 @@ void JBFileWatcherAdvancedNSink::notifyReset(const QString &path) {
         myDirtyPaths.addDirtyPathRecursive(path);
     } else {
         QFileInfoList roots = QDir::drives();
-
         QMutexLocker locker(myLock.data());
         for (auto it = roots.begin(); it != roots.end(); ++it) {
             auto root = *it;
-            myDirtyPaths.addDirtyPathRecursive(root.absoluteFilePath());
+            myDirtyPaths.addDirtyPathRecursive(QDir::toNativeSeparators(root.absoluteFilePath()));
         }
     }
     notifyOnEvent(RESET);

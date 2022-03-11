@@ -40,8 +40,8 @@ public:
     QStringList flatPaths() const;
 
     /* If this function is called right after paths are set,
-     * paths will be sent to subprocess directly and block until subprocess receives.
-     * Otherwise, paths will be sent to subprocess later.
+     * paths will be sent to fsnotifier directly and block until fsnotifier receives.
+     * Otherwise, paths will be sent to fsnotifier later.
      */
     bool waitForPathsSet(int msecs = 30000);
 
