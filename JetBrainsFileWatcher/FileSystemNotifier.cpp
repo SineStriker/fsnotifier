@@ -19,7 +19,7 @@ FileSystemNotifier::FileSystemNotifier(FileSystemNotifierPrivate &d, QObject *pa
     Q_ASSERT(!self);
     self = this;
 
-    d.init();
+    this->d->init();
 }
 
 void FileSystemNotifier::startWatch() {
@@ -97,6 +97,14 @@ QStringList FileSystemNotifier::flatPaths() const {
 
 bool FileSystemNotifier::waitForPathsSet(int msecs) {
     return d->waitForPathsSet(msecs);
+}
+
+bool FileSystemNotifier::separatorSystemDependent() const {
+    return d->separatorSystemDependent;
+}
+
+void FileSystemNotifier::setSeparatorSystemDependent(bool val) {
+    d->separatorSystemDependent = val;
 }
 
 bool FileSystemNotifier::event(QEvent *event) {

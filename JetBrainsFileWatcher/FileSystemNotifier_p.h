@@ -38,10 +38,12 @@ public:
     JBLocalFileSystem *fs;
 
     bool hasChangeEvent;
-
     bool rootsNeedUpdate;
 
+    bool separatorSystemDependent;
+
     static QStringList listPathToNativeSeparators(const QStringList &paths);
+    static QStringList listPathFromNativeSeparators(const QStringList &paths);
 };
 
 #endif // FILESYSTEMNOTIFIER_P_H

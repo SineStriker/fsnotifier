@@ -45,6 +45,9 @@ public:
      */
     bool waitForPathsSet(int msecs = 30000);
 
+    bool separatorSystemDependent() const;
+    void setSeparatorSystemDependent(bool val);
+
 protected:
     bool event(QEvent *event) override;
 

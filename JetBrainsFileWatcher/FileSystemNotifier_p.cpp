@@ -9,6 +9,7 @@ using namespace JBFileWatcherUtils;
 FileSystemNotifierPrivate::FileSystemNotifierPrivate(FileSystemNotifier *q) : q(q), fs(nullptr) {
     hasChangeEvent = false;
     rootsNeedUpdate = false;
+    separatorSystemDependent = true;
 }
 
 FileSystemNotifierPrivate::~FileSystemNotifierPrivate() {
@@ -18,13 +19,16 @@ void FileSystemNotifierPrivate::init() {
     fs = new JBLocalFileSystem(q);
 
     q->connect(fs, &JBLocalFileSystem::pathsDirty, q, [this](const QStringList &paths) { //
-        emit q->changed(listPathToNativeSeparators(paths));
+        emit q->changed((separatorSystemDependent ? listPathToNativeSeparators
+                                                  : listPathFromNativeSeparators)(paths));
     });
     q->connect(fs, &JBLocalFileSystem::flatDirsDirty, q, [this](const QStringList &paths) { //
-        emit q->changed(listPathToNativeSeparators(paths));
+        emit q->changed((separatorSystemDependent ? listPathToNativeSeparators
+                                                  : listPathFromNativeSeparators)(paths));
     });
     q->connect(fs, &JBLocalFileSystem::recursivePathsDirty, q, [this](const QStringList &paths) { //
-        emit q->renamed(listPathToNativeSeparators(paths));
+        emit q->renamed((separatorSystemDependent ? listPathToNativeSeparators
+                                                  : listPathFromNativeSeparators)(paths));
     });
     q->connect(fs, &JBLocalFileSystem::failureOccured, q, [this](const QString &reason) { //
         emit q->failed(reason);
@@ -126,6 +130,14 @@ QStringList FileSystemNotifierPrivate::listPathToNativeSeparators(const QStringL
     QStringList res;
     for (auto it = paths.begin(); it != paths.end(); ++it) {
         res.append(QDir::toNativeSeparators(*it));
+    }
+    return res;
+}
+
+QStringList FileSystemNotifierPrivate::listPathFromNativeSeparators(const QStringList &paths) {
+    QStringList res;
+    for (auto it = paths.begin(); it != paths.end(); ++it) {
+        res.append(QDir::fromNativeSeparators(*it));
     }
     return res;
 }
