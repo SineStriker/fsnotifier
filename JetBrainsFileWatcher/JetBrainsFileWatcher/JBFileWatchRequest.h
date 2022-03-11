@@ -51,10 +51,7 @@ public:
 
     QString orgPath() const;
 
-    inline bool operator==(const JBFileWatchRequest &other) const {
-        return (!symlink && path == other.path && recursive == other.recursive) ||
-               (symlink && registered == other.registered && data == other.data);
-    }
+    bool operator==(const JBFileWatchRequest &other) const;
 
 protected:
     QString path;

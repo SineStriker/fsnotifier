@@ -1,6 +1,12 @@
 #include "JBFileWatchRequest.h"
+#include "JBFileWatcherUtils.h"
 
 #include <QDebug>
+#include <QFileInfo>
+
+#define pathcmp JBFileWatcherUtils::OSAgnosticPathUtil::COMPARATOR_compare
+#define cpath(path) QFileInfo(path).absoluteFilePath()
+#define to_num(n) QString::number(n)
 
 JBSymlinkData::JBSymlinkData() {
 }
@@ -26,7 +32,8 @@ bool JBSymlinkData::hasValidTarget() const {
 }
 
 bool JBSymlinkData::operator==(const JBSymlinkData &other) const {
-    return m_id == other.m_id && m_path == other.m_path && m_target == other.m_target;
+    return m_id == other.m_id && !pathcmp(m_path, other.m_path) &&
+           !pathcmp(m_target, other.m_target);
 }
 
 QDebug operator<<(QDebug debug, const JBSymlinkData &data) {
@@ -80,6 +87,11 @@ QString JBFileWatchRequest::orgPath() const {
     return data.path();
 }
 
+bool JBFileWatchRequest::operator==(const JBFileWatchRequest &other) const {
+    return (!symlink && !pathcmp(path, other.path) && recursive == other.recursive) ||
+           (symlink && registered == other.registered && data == other.data);
+}
+
 QDebug operator<<(QDebug debug, const JBFileWatchRequest &request) {
     debug.nospace() << "WatchRequest(" << request.path << ", "
                     << (request.recursive ? "Recursive" : "Flat") << ", "
@@ -87,16 +99,12 @@ QDebug operator<<(QDebug debug, const JBFileWatchRequest &request) {
     return debug;
 }
 
-#define Q_N(A) QString::number(A)
-
 uint qHash(const JBFileWatchRequest &key, uint seed) {
     if (key.symlink) {
-        return qHash(Q_N(key.recursive) + "|" + Q_N(key.data.id()) + "|" + key.data.path() + "|" +
-                         key.data.target(),
+        return qHash(to_num(key.recursive) + "|" + to_num(key.data.id()) + "|" +
+                         cpath(key.data.path()) + "|" + cpath(key.data.target()),
                      seed);
     } else {
-        return qHash(Q_N(key.recursive) + "|" + key.path);
+        return qHash(to_num(key.recursive) + "|" + cpath(key.path));
     }
 }
-
-#undef Q_N

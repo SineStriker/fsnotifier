@@ -232,7 +232,7 @@ void JBWatchRootsManager::removeWatchRequest(JBWatchRootsManager::WatchRequest r
     QSet<WatchRequest> &requests = it->second;
     requests.remove(request);
     if (requests.isEmpty()) {
-        roots.remove(watchRoot);
+        roots.erase(it);
         if (request.isRecursive()) {
             if (WatchRootsUtil::removeRecursivePath(myOptimizedRecursiveWatchRoots,
                                                     myRecursiveWatchRoots, watchRoot)) {
@@ -242,6 +242,9 @@ void JBWatchRootsManager::removeWatchRequest(JBWatchRootsManager::WatchRequest r
                                                          watchRoot)) {
             myWatcherRequiresUpdate = true;
         }
+    } else {
+        qDebug() << (*requests.begin() == request);
+        requests.remove(request);
     }
 }
 
