@@ -180,12 +180,12 @@ void JBWatchRootsManager::updateWatchRoots(QSet<QString> rootsToAdd,
         // if found,
         if (!foundSameRequest) {
             WatchRequest newRequest(watchRoot, recursiveWatchRoots);
-            requests.insert(newRequest);
             result.insert(newRequest);
             if (recursiveWatchRoots) {
                 collectSymlinkRequests(newRequest, watchSymlinkRequestsToAdd);
             }
             if (recursiveWatchRoots) {
+                requests.insert(newRequest);
                 if (requests.size() == 1 && !WatchRootsUtil::isCoveredRecursively(
                                                 myOptimizedRecursiveWatchRoots, watchRoot)) {
                     myWatcherRequiresUpdate = true;
@@ -193,6 +193,7 @@ void JBWatchRootsManager::updateWatchRoots(QSet<QString> rootsToAdd,
                 }
             } else {
                 if (requests.isEmpty() || requests.begin()->rootPath() != watchRoot) {
+                    requests.insert(newRequest);
                     myWatcherRequiresUpdate = true;
                 }
             }
