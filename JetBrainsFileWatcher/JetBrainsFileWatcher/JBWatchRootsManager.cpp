@@ -192,7 +192,7 @@ void JBWatchRootsManager::updateWatchRoots(QSet<QString> rootsToAdd,
                     WatchRootsUtil::insertRecursivePath(myOptimizedRecursiveWatchRoots, watchRoot);
                 }
             } else {
-                if (requests.size() == 1) {
+                if (requests.isEmpty() || requests.begin()->rootPath() != watchRoot) {
                     myWatcherRequiresUpdate = true;
                 }
             }
