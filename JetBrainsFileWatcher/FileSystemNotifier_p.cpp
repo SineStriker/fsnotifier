@@ -35,6 +35,36 @@ void FileSystemNotifierPrivate::init() {
     });
 }
 
+void FileSystemNotifierPrivate::changeRecursivePathsToAdd(const QString &path, int n) {
+    if (n == 0) {
+        return;
+    }
+    const auto &newPath = QDir::toNativeSeparators(path);
+    auto it2 = recursivePathsToAdd.find(newPath);
+    if (it2 == recursivePathsToAdd.end()) {
+        it2 = recursivePathsToAdd.insert(newPath, 0);
+    }
+    it2.value() += n;
+    if (it2.value() == 0) {
+        recursivePathsToAdd.erase(it2);
+    }
+}
+
+void FileSystemNotifierPrivate::changeFlatPathsToAdd(const QString &path, int n) {
+    if (n == 0) {
+        return;
+    }
+    const auto &newPath = QDir::toNativeSeparators(path);
+    auto it2 = flatPathsToAdd.find(newPath);
+    if (it2 == flatPathsToAdd.end()) {
+        it2 = flatPathsToAdd.insert(newPath, 0);
+    }
+    it2.value() += n;
+    if (it2.value() == 0) {
+        flatPathsToAdd.erase(it2);
+    }
+}
+
 void FileSystemNotifierPrivate::postChange() {
     hasChangeEvent = true;
     QCoreApplication::postEvent(q, new QTimerEvent(-1));
@@ -42,17 +72,34 @@ void FileSystemNotifierPrivate::postChange() {
 
 void FileSystemNotifierPrivate::commitChange() {
     rootsNeedUpdate = false;
-    if (!recursivePathsToRemove.isEmpty() || !flatPathsToRemove.isEmpty() ||
-        !recursivePathsToAdd.isEmpty() || !flatPathsToAdd.isEmpty()) {
+
+    if (!recursivePathsToAdd.isEmpty() || !flatPathsToAdd.isEmpty()) {
         QList<JB::WatchRequest> requestsToRemove;
-        for (auto it = recursivePathsToRemove.begin(); it != recursivePathsToRemove.end(); ++it) {
-            requestsToRemove.append(JB::WatchRequest(*it, true));
+        QStringList recursivePaths;
+        QStringList flatPaths;
+        for (auto it = recursivePathsToAdd.begin(); it != recursivePathsToAdd.end(); ++it) {
+            const QString &path = it.key();
+            int cnt = it.value();
+            if (cnt < 0) {
+                for (int i = 0; i < -cnt; ++i) {
+                    requestsToRemove.append(JB::WatchRequest(path, true));
+                }
+            } else {
+                for (int i = 0; i < cnt; ++i) {
+                    recursivePaths.append(path);
+                }
+            }
         }
-        for (auto it = flatPathsToRemove.begin(); it != flatPathsToRemove.end(); ++it) {
-            requestsToRemove.append(JB::WatchRequest(*it, false));
+        for (auto it = flatPathsToAdd.begin(); it != flatPathsToAdd.end(); ++it) {
+            const QString &path = it.key();
+            int cnt = it.value();
+            if (cnt < 0) {
+                requestsToRemove.append(JB::WatchRequest(path, false));
+            } else {
+                flatPaths.append(path);
+            }
         }
-        rootsNeedUpdate = fs->replaceWatchedRoots(requestsToRemove, SetToList(recursivePathsToAdd),
-                                                  SetToList(flatPathsToAdd));
+        rootsNeedUpdate = fs->replaceWatchedRoots(requestsToRemove, recursivePaths, flatPaths);
         clearCachedPaths();
     }
     hasChangeEvent = false;
@@ -88,39 +135,40 @@ bool FileSystemNotifierPrivate::waitForPathsSet(int msecs) {
 
 void FileSystemNotifierPrivate::clearCachedPaths() {
     recursivePathsToAdd.clear();
-    recursivePathsToRemove.clear();
     flatPathsToAdd.clear();
-    flatPathsToRemove.clear();
 }
 
-QSet<QString> FileSystemNotifierPrivate::recursivePaths() const {
+QMap<QString, int> FileSystemNotifierPrivate::recursivePaths() const {
     auto requests = fs->currentWatchedRoots();
-    QSet<QString> res;
+    QMap<QString, int> res;
     for (auto it = requests.begin(); it != requests.end(); ++it) {
-        if (!it->isSymlink() && it->isRecursive()) {
-            res.insert(it->rootPath());
+        const auto &request = it->first;
+        if (!request.isSymlink() && request.isRecursive()) {
+            res.insert(request.rootPath(), it->second);
         }
     }
     return res;
 }
 
-QSet<QString> FileSystemNotifierPrivate::flatPaths() const {
+QMap<QString, int> FileSystemNotifierPrivate::flatPaths() const {
     auto requests = fs->currentWatchedRoots();
-    QSet<QString> res;
+    QMap<QString, int> res;
     for (auto it = requests.begin(); it != requests.end(); ++it) {
-        if (!it->isSymlink() && !it->isRecursive()) {
-            res.insert(it->rootPath());
+        const auto &request = it->first;
+        if (!request.isSymlink() && !request.isRecursive()) {
+            res.insert(request.rootPath(), it->second);
         }
     }
     return res;
 }
 
-QPair<QSet<QString>, QSet<QString>> FileSystemNotifierPrivate::paths() const {
+QPair<QMap<QString, int>, QMap<QString, int>> FileSystemNotifierPrivate::paths() const {
     auto requests = fs->currentWatchedRoots();
-    QPair<QSet<QString>, QSet<QString>> res;
+    QPair<QMap<QString, int>, QMap<QString, int>> res;
     for (auto it = requests.begin(); it != requests.end(); ++it) {
-        if (!it->isSymlink()) {
-            (it->isRecursive() ? res.first : res.second).insert(it->rootPath());
+        const auto &request = it->first;
+        if (!request.isSymlink()) {
+            (request.isRecursive() ? res.first : res.second).insert(request.rootPath(), it->second);
         }
     }
     return res;

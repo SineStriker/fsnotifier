@@ -21,12 +21,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(stopButton, &QPushButton::clicked, this, [&]() { fs->stopWatch(); });
 
     connect(request1Button, &QPushButton::clicked, this, [&]() { //
-        fs->addFlatPaths({"E:/test1"});
+        fs->addRecursivePaths({"E:/test1"});
         fs->waitForPathsSet();
     });
 
     connect(request2Button, &QPushButton::clicked, this, [&]() { //
-        fs->removeAllPaths();
+        fs->removeRecursivePaths({"E:/test1"});
         fs->waitForPathsSet();
     });
 

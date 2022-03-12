@@ -96,7 +96,7 @@ bool JBLocalFileSystem::replaceWatchedRoots(const QList<WatchRequest> &watchRequ
                                                     flatRootsToAdd);
 }
 
-QList<JBLocalFileSystem::WatchRequest> JBLocalFileSystem::currentWatchedRoots() const {
+QList<QPair<JBLocalFileSystem::WatchRequest, int>> JBLocalFileSystem::currentWatchedRoots() const {
     if (disposed()) {
         return {};
     }

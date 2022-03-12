@@ -28,7 +28,7 @@ public:
     bool replaceWatchedRoots(const QList<WatchRequest> &watchRequestsToRemove,
                              const QStringList &recursiveRootsToAdd,
                              const QStringList &flatRootsToAdd);
-    QList<WatchRequest> currentWatchedRoots() const;
+    QList<QPair<WatchRequest, int>> currentWatchedRoots() const;
 
     void markSuspiciousFilesDirty(const QStringList &paths);
 

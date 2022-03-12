@@ -2,6 +2,7 @@
 #define FILESYSTEMNOTIFIER_P_H
 
 #include <QEvent>
+#include <QMap>
 #include <QScopedPointer>
 #include <QSet>
 #include <QString>
@@ -17,6 +18,9 @@ public:
 
     void init();
 
+    void changeRecursivePathsToAdd(const QString &path, int n);
+    void changeFlatPathsToAdd(const QString &path, int n);
+
     void postChange();
     void commitChange();
 
@@ -24,16 +28,14 @@ public:
 
     void clearCachedPaths();
 
-    QSet<QString> recursivePaths() const;
-    QSet<QString> flatPaths() const;
-    QPair<QSet<QString>, QSet<QString>> paths() const;
+    QMap<QString, int> recursivePaths() const;
+    QMap<QString, int> flatPaths() const;
+    QPair<QMap<QString, int>, QMap<QString, int>> paths() const;
 
     FileSystemNotifier *const q; // q_ptr
 
-    QSet<QString> recursivePathsToAdd;
-    QSet<QString> flatPathsToAdd;
-    QSet<QString> recursivePathsToRemove;
-    QSet<QString> flatPathsToRemove;
+    QMap<QString, int> recursivePathsToAdd;
+    QMap<QString, int> flatPathsToAdd;
 
     JBLocalFileSystem *fs;
 

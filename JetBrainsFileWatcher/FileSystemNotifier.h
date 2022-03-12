@@ -36,8 +36,8 @@ public:
     void removeAllPaths();
 
     /* Paths currently watched */
-    QStringList recursivePaths() const;
-    QStringList flatPaths() const;
+    QList<QPair<QString, int>> recursivePaths() const;
+    QList<QPair<QString, int>> flatPaths() const;
 
     /* If this function is called right after paths are set,
      * paths will be sent to fsnotifier directly and block until fsnotifier receives.

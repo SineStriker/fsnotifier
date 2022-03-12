@@ -35,64 +35,81 @@ bool FileSystemNotifier::isWatching() const {
 }
 
 void FileSystemNotifier::addRecursivePaths(const QStringList &paths) {
-    auto set = ListToSet(paths);
-    d->recursivePathsToAdd.unite(set);
-    d->recursivePathsToRemove.subtract(set);
+    for (auto it = paths.begin(); it != paths.end(); ++it) {
+        d->changeRecursivePathsToAdd(*it, 1);
+    }
     d->postChange();
 }
 
 void FileSystemNotifier::addFlatPaths(const QStringList &paths) {
-    auto set = ListToSet(paths);
-    d->flatPathsToAdd.unite(set);
-    d->flatPathsToRemove.subtract(set);
+    for (auto it = paths.begin(); it != paths.end(); ++it) {
+        d->changeFlatPathsToAdd(*it, 1);
+    }
     d->postChange();
 }
 
 void FileSystemNotifier::removeRecursivePaths(const QStringList &paths) {
-    auto set = ListToSet(paths);
-    d->recursivePathsToAdd.subtract(set);
-    d->recursivePathsToRemove.unite(set);
+    for (auto it = paths.begin(); it != paths.end(); ++it) {
+        d->changeRecursivePathsToAdd(*it, -1);
+    }
     d->postChange();
 }
 
 void FileSystemNotifier::removeFlatPaths(const QStringList &paths) {
-    auto set = ListToSet(paths);
-    d->flatPathsToAdd.subtract(set);
-    d->flatPathsToRemove.unite(set);
+    for (auto it = paths.begin(); it != paths.end(); ++it) {
+        d->changeFlatPathsToAdd(*it, -1);
+    }
     d->postChange();
 }
 
 void FileSystemNotifier::removeAllRecursivePaths() {
-    auto paths = d->recursivePaths();
-    d->recursivePathsToAdd.clear();
-    d->recursivePathsToRemove.unite(paths);
+    const auto &paths = d->recursivePaths();
+    for (auto it = paths.begin(); it != paths.end(); ++it) {
+        d->changeRecursivePathsToAdd(it.key(), -it.value());
+    }
     d->postChange();
 }
 
 void FileSystemNotifier::removeAllFlatPaths() {
-    auto paths = d->flatPaths();
-    d->flatPathsToAdd.clear();
-    d->flatPathsToRemove.unite(paths);
+    const auto &paths = d->flatPaths();
+    for (auto it = paths.begin(); it != paths.end(); ++it) {
+        d->changeRecursivePathsToAdd(it.key(), -it.value());
+    }
     d->postChange();
 }
 
 void FileSystemNotifier::removeAllPaths() {
-    auto pathsPair = d->paths();
-    d->recursivePathsToAdd.clear();
-    d->flatPathsToAdd.clear();
-    d->recursivePathsToRemove.unite(pathsPair.first);
-    d->flatPathsToRemove.unite(pathsPair.second);
+    const auto &pathsPair = d->paths();
+    d->clearCachedPaths();
+
+    const auto &recPairs = pathsPair.first;
+    for (auto it = recPairs.begin(); it != recPairs.end(); ++it) {
+        d->changeRecursivePathsToAdd(it.key(), -it.value());
+    }
+
+    const auto &flatPairs = pathsPair.second;
+    for (auto it = flatPairs.begin(); it != flatPairs.end(); ++it) {
+        d->changeFlatPathsToAdd(it.key(), -it.value());
+    }
     d->postChange();
 }
 
-QStringList FileSystemNotifier::recursivePaths() const {
+QList<QPair<QString, int>> FileSystemNotifier::recursivePaths() const {
     auto paths = d->recursivePaths();
-    return SetToList(paths.unite(d->recursivePathsToAdd).subtract(d->recursivePathsToRemove));
+    QList<QPair<QString, int>> res;
+    for (auto it = paths.begin(); it != paths.end(); ++it) {
+        res.append(qMakePair(it.key(), it.value()));
+    }
+    return res;
 }
 
-QStringList FileSystemNotifier::flatPaths() const {
+QList<QPair<QString, int>> FileSystemNotifier::flatPaths() const {
     auto paths = d->flatPaths();
-    return SetToList(paths.unite(d->flatPathsToAdd).subtract(d->flatPathsToRemove));
+    QList<QPair<QString, int>> res;
+    for (auto it = paths.begin(); it != paths.end(); ++it) {
+        res.append(qMakePair(it.key(), it.value()));
+    }
+    return res;
 }
 
 bool FileSystemNotifier::waitForPathsSet(int msecs) {

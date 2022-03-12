@@ -21,17 +21,17 @@ bool JBWatchRootsManager::replaceWatchedRoots(const QList<WatchRequest> &request
                                               const QStringList &flatRootsToAdd) {
     QMutexLocker locker(myLock.data());
 
-    QSet<WatchRequest> recursiveRequestsToRemove, flatRequestsToRemove;
+    QList<WatchRequest> recursiveRequestsToRemove, flatRequestsToRemove;
     for (auto it = requestsToRemove.begin(); it != requestsToRemove.end(); ++it) {
         const auto &req = *it;
-        (req.isRecursive() ? recursiveRequestsToRemove : flatRequestsToRemove).insert(req);
+        (req.isRecursive() ? recursiveRequestsToRemove : flatRequestsToRemove).append(req);
     };
 
-    QSet<JBFileWatchRequest> result;
+    QList<WatchRequest> result;
 
-    updateWatchRoots(ListToSet(recursiveRootsToAdd), recursiveRequestsToRemove, result,
+    updateWatchRoots(recursiveRootsToAdd, recursiveRequestsToRemove, result,
                      myRecursiveWatchRoots, true);
-    updateWatchRoots(ListToSet(flatRootsToAdd), flatRequestsToRemove, result, myFlatWatchRoots,
+    updateWatchRoots(flatRootsToAdd, flatRequestsToRemove, result, myFlatWatchRoots,
                      false);
 
     bool updated = myWatcherRequiresUpdate;
@@ -43,14 +43,15 @@ bool JBWatchRootsManager::replaceWatchedRoots(const QList<WatchRequest> &request
     return updated;
 }
 
-QSet<JBWatchRootsManager::WatchRequest> JBWatchRootsManager::currentWatchRequests() const {
+QSet<QPair<JBWatchRootsManager::WatchRequest, int>>
+    JBWatchRootsManager::currentWatchRequests() const {
     QMutexLocker locker(myLock.data());
-    QSet<WatchRequest> res;
+    QSet<QPair<JBWatchRootsManager::WatchRequest, int>> res;
     for (auto it = myRecursiveWatchRoots.begin(); it != myRecursiveWatchRoots.end(); ++it) {
-        res.unite(it->second);
+        res.insert(qMakePair(it->second.front(), it->second.size()));
     }
     for (auto it = myFlatWatchRoots.begin(); it != myFlatWatchRoots.end(); ++it) {
-        res.unite(it->second);
+        res.insert(qMakePair(it->second.front(), it->second.size()));
     }
     return res;
 }
@@ -152,10 +153,10 @@ JBCanonicalPathMap JBWatchRootsManager::createCanonicalPathMap(
                               initialMappings);
 }
 
-void JBWatchRootsManager::updateWatchRoots(QSet<QString> rootsToAdd,
-                                           QSet<WatchRequest> requestsToRemove,
-                                           QSet<WatchRequest> &result,
-                                           JBNavigableFileMap<QSet<WatchRequest>> &roots,
+void JBWatchRootsManager::updateWatchRoots(QList<QString> rootsToAdd,
+                                           QList<WatchRequest> requestsToRemove,
+                                           QList<WatchRequest> &result,
+                                           JBNavigableFileMap<QList<WatchRequest>> &roots,
                                            bool recursiveWatchRoots) {
     QList<WatchRequest> watchSymlinkRequestsToAdd;
     for (const QString &root : rootsToAdd) {
@@ -166,13 +167,13 @@ void JBWatchRootsManager::updateWatchRoots(QSet<QString> rootsToAdd,
 
         // add to member roots
         auto it = roots.computeIfAbsent(watchRoot, {});
-        QSet<WatchRequest> &requests = it->second; // executory requests
+        QList<WatchRequest> &requests = it->second; // executory requests
         bool foundSameRequest = false;
         if (!requestsToRemove.isEmpty()) {
             for (const WatchRequest &currentRequest : requests) {
-                if (requestsToRemove.remove(currentRequest)) { // found in executory requests
+                if (requestsToRemove.removeOne(currentRequest)) { // found in executory requests
                     foundSameRequest = true;
-                    result.insert(currentRequest); // not remove
+                    result.append(currentRequest); // not remove
                 }
             }
         }
@@ -180,21 +181,16 @@ void JBWatchRootsManager::updateWatchRoots(QSet<QString> rootsToAdd,
         // if found,
         if (!foundSameRequest) {
             WatchRequest newRequest(watchRoot, recursiveWatchRoots);
-            result.insert(newRequest);
+            requests.append(newRequest);
+            result.append(newRequest);
             if (recursiveWatchRoots) {
                 collectSymlinkRequests(newRequest, watchSymlinkRequestsToAdd);
             }
-            if (recursiveWatchRoots) {
-                requests.insert(newRequest);
-                if (requests.size() == 1 && !WatchRootsUtil::isCoveredRecursively(
-                                                myOptimizedRecursiveWatchRoots, watchRoot)) {
-                    myWatcherRequiresUpdate = true;
+            if (requests.size() == 1 &&
+                !WatchRootsUtil::isCoveredRecursively(myOptimizedRecursiveWatchRoots, watchRoot)) {
+                myWatcherRequiresUpdate = true;
+                if (recursiveWatchRoots) {
                     WatchRootsUtil::insertRecursivePath(myOptimizedRecursiveWatchRoots, watchRoot);
-                }
-            } else {
-                if (requests.isEmpty() || requests.begin()->rootPath() != watchRoot) {
-                    requests.insert(newRequest);
-                    myWatcherRequiresUpdate = true;
                 }
             }
         }
@@ -234,8 +230,8 @@ void JBWatchRootsManager::removeWatchRequest(JBWatchRootsManager::WatchRequest r
     if (it == roots.end()) {
         return;
     }
-    QSet<WatchRequest> &requests = it->second;
-    requests.remove(request);
+    QList<WatchRequest> &requests = it->second;
+    requests.removeOne(request);
     if (requests.isEmpty()) {
         roots.erase(it);
         if (request.isRecursive()) {
@@ -247,9 +243,6 @@ void JBWatchRootsManager::removeWatchRequest(JBWatchRootsManager::WatchRequest r
                                                          watchRoot)) {
             myWatcherRequiresUpdate = true;
         }
-    } else {
-        qDebug() << (*requests.begin() == request);
-        requests.remove(request);
     }
 }
 
@@ -270,9 +263,9 @@ void JBWatchRootsManager::addWatchSymlinkRequest(JBWatchRootsManager::WatchReque
     if (it == roots.end()) {
         it = roots.insert(watchRoot, {}).first;
     }
-    QSet<WatchRequest> &requests = it->second;
+    QList<WatchRequest> &requests = it->second;
 
-    requests.insert(request);
+    requests.append(request);
     if (requests.size() == 1 &&
         !WatchRootsUtil::isCoveredRecursively(myOptimizedRecursiveWatchRoots, watchRoot)) {
         if (request.isRecursive()) {

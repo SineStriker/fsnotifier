@@ -142,8 +142,10 @@ void JBNativeFileWatcher::setWatchRootsCore(QStringList recursive, QStringList f
     myIgnoredRoots = ignored;
     myNotificationSink->notifyManualWatchRoots(this, ignored);
 
-    bool flag = true;
+    // Start send comand line
     myIsSendingRoots = true;
+
+    bool flag = true;
     if (writeLine(ROOTS_COMMAND)) {
         for (auto it = recursive.begin(); it != recursive.end(); ++it) {
             const QString &path = *it;
@@ -169,6 +171,7 @@ void JBNativeFileWatcher::setWatchRootsCore(QStringList recursive, QStringList f
         jbWarning() << "[Watcher] Error setting roots.";
     }
 
+    // Send command line over
     myIsSendingRoots = false;
 }
 
