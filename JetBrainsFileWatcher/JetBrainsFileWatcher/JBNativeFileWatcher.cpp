@@ -127,9 +127,8 @@ void JBNativeFileWatcher::setWatchRootsCore(QStringList recursive, QStringList f
         return;
     }
 
-    myIsSendingRoots = true;
-
     mySettingRoots++;
+
     myRecursiveWatchRoots = recursive;
     myFlatWatchRoots = flat;
 
@@ -144,6 +143,7 @@ void JBNativeFileWatcher::setWatchRootsCore(QStringList recursive, QStringList f
     myNotificationSink->notifyManualWatchRoots(this, ignored);
 
     bool flag = true;
+    myIsSendingRoots = true;
     if (writeLine(ROOTS_COMMAND)) {
         for (auto it = recursive.begin(); it != recursive.end(); ++it) {
             const QString &path = *it;

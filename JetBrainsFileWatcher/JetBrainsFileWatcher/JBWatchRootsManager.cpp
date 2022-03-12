@@ -185,11 +185,15 @@ void JBWatchRootsManager::updateWatchRoots(QSet<QString> rootsToAdd,
             if (recursiveWatchRoots) {
                 collectSymlinkRequests(newRequest, watchSymlinkRequestsToAdd);
             }
-            if (requests.size() == 1 &&
-                !WatchRootsUtil::isCoveredRecursively(myOptimizedRecursiveWatchRoots, watchRoot)) {
-                myWatcherRequiresUpdate = true;
-                if (recursiveWatchRoots) {
+            if (recursiveWatchRoots) {
+                if (requests.size() == 1 && !WatchRootsUtil::isCoveredRecursively(
+                                                myOptimizedRecursiveWatchRoots, watchRoot)) {
+                    myWatcherRequiresUpdate = true;
                     WatchRootsUtil::insertRecursivePath(myOptimizedRecursiveWatchRoots, watchRoot);
+                }
+            } else {
+                if (requests.isEmpty() || requests.begin()->rootPath() != watchRoot) {
+                    myWatcherRequiresUpdate = true;
                 }
             }
         }
