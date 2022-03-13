@@ -146,7 +146,7 @@ namespace JBFileWatcherUtils {
                                              bool convertToForwardSlashes);
 
         template <class F>
-        void forEachPathSegment(const QString &path, char separator, F consumer) {
+        void forEachPathSegment(const QString &path, QChar separator, F consumer) {
             int position = path.indexOf(separator);
             int length = path.length();
             while (position >= 0 && position < length) {

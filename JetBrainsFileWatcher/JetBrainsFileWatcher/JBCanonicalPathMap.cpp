@@ -146,7 +146,7 @@ QStringList JBCanonicalPathMap::applyMapping(const QString &reportedPath) const 
     QStringList results(reportedPath);
 
     WatchRootsUtil::forEachPathSegment(
-        reportedPath, QDir::separator().toLatin1(), [&](const QString &path) -> bool {
+        reportedPath, QDir::separator(), [&](const QString &path) -> bool {
             QStringList mappedPaths = myPathMappings.values(path);
             for (auto it = mappedPaths.begin(); it != mappedPaths.end(); ++it) {
                 const auto &mappedPath = *it;
