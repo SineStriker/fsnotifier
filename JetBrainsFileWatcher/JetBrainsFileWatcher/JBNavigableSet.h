@@ -1,10 +1,11 @@
 #ifndef JBNAVIGABLESET_H
 #define JBNAVIGABLESET_H
 
-#include <QSet>
-
 #include <algorithm>
 #include <set>
+
+#include <QDebug>
+#include <QSet>
 
 template <class _Kty, class _Pr = std::less<_Kty>, class _Alloc = std::allocator<_Kty>>
 class JBNavigableSet : public std::set<_Kty, _Pr, _Alloc> {
@@ -276,6 +277,23 @@ public:
         }
         return *this;
     }
+
+    template <class _Kty1, class _Pr1, class _Alloc1>
+    friend QDebug operator<<(QDebug debug, const JBNavigableSet<_Kty1, _Pr1, _Alloc1> &set);
 };
+
+template <class _Kty1, class _Pr1, class _Alloc1>
+QDebug operator<<(QDebug debug, const JBNavigableSet<_Kty1, _Pr1, _Alloc1> &set) {
+    QDebugStateSaver saver(debug);
+    debug.nospace() << "NavigableSet(";
+    for (auto it = set.begin(); it != set.end(); ++it) {
+        debug.nospace() << *it;
+        if (std::next(it) != set.end()) {
+            debug.nospace() << ", ";
+        }
+    }
+    debug.noquote().nospace() << ")";
+    return debug;
+}
 
 #endif // JBNAVIGABLESET_H

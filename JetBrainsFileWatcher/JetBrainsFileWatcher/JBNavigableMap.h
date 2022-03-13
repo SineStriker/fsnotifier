@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <map>
 
+#include <QDebug>
 #include <QMap>
 
 #include "JBNavigableSet.h"
@@ -210,6 +211,20 @@ public:
         }
         return res;
     }
+
+    template <class _Kty1, class _Ty1, class _Pr1, class _Alloc1>
+    friend QDebug operator<<(QDebug debug, const JBNavigableMap<_Kty1, _Ty1, _Pr1, _Alloc1> &map);
 };
+
+template <class _Kty1, class _Ty1, class _Pr1, class _Alloc1>
+QDebug operator<<(QDebug debug, const JBNavigableMap<_Kty1, _Ty1, _Pr1, _Alloc1> &map) {
+    QDebugStateSaver saver(debug);
+    debug.nospace() << "NavigableMap(";
+    for (auto it = map.begin(); it != map.end(); ++it) {
+        debug.nospace() << "(" << it->first << ", " << it->second << ")";
+    }
+    debug.noquote().nospace() << ")";
+    return debug;
+}
 
 #endif // JBNAVIGABLEMAP_H

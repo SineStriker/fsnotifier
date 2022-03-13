@@ -1,5 +1,5 @@
-#ifndef FILESYSTEMNOTIFIER_P_H
-#define FILESYSTEMNOTIFIER_P_H
+#ifndef FILESYSTEMNOTIFIERPRIVATE_H
+#define FILESYSTEMNOTIFIERPRIVATE_H
 
 #include <QEvent>
 #include <QMap>
@@ -48,4 +48,4 @@ public:
     static QStringList listPathFromNativeSeparators(const QStringList &paths);
 };
 
-#endif // FILESYSTEMNOTIFIER_P_H
+#endif // FILESYSTEMNOTIFIERPRIVATE_H

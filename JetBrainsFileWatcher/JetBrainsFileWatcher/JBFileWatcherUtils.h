@@ -52,6 +52,12 @@ namespace JBFileWatcherUtils {
 
     namespace SystemInfo {
 
+        bool isWindows();
+
+        bool isMac();
+
+        bool isLinux();
+
         bool isFileSystemCaseSensitive();
 
         Qt::CaseSensitivity FileSystemCaseSensitivity();
@@ -62,7 +68,9 @@ namespace JBFileWatcherUtils {
 
         int compare(QChar c1, QChar c2, bool ignoreCase);
 
-    }
+        int lastIndexOf(const QString &s, QChar c, int start, int end);
+
+    } // namespace StringUtil
 
     namespace Integer {
 
@@ -84,7 +92,15 @@ namespace JBFileWatcherUtils {
 
         bool startsWith(const QString &path, const QString &prefix);
 
-        bool pathsEqual(const QString &path1, const QString &path2);
+        bool pathsEqual(QString path1, QString path2);
+
+        QString toCanonicalPath(QString path);
+
+        QString toCanonicalPath(QString path, QChar separatorChar, bool removeLastSlash);
+
+        int processRoot(QString &path, QString &result);
+
+        bool processDots(QString &result, int dots, int start);
 
     } // namespace FileUtil
 

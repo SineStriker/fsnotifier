@@ -29,20 +29,42 @@ QString JBFileWatcherUtils::MessageToFailureReasonString(const QString &message)
     return message;
 }
 
-bool JBFileWatcherUtils::SystemInfo::isFileSystemCaseSensitive() {
+bool JBFileWatcherUtils::SystemInfo::isWindows() {
 #ifdef Q_OS_WINDOWS
-    return false;
-#else
     return true;
+#else
+    return false;
 #endif
 }
 
-Qt::CaseSensitivity JBFileWatcherUtils::SystemInfo::FileSystemCaseSensitivity() {
-#ifdef Q_OS_WINDOWS
-    return Qt::CaseInsensitive;
+bool JBFileWatcherUtils::SystemInfo::isMac() {
+#ifdef Q_OS_MAC
+    return true;
 #else
-    return Qt::CaseSensitive;
+    return false;
 #endif
+}
+
+bool JBFileWatcherUtils::SystemInfo::isLinux() {
+#ifdef Q_OS_LINUX
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool JBFileWatcherUtils::SystemInfo::isFileSystemCaseSensitive() {
+    if (isLinux()) {
+        return true;
+    }
+    return false;
+}
+
+Qt::CaseSensitivity JBFileWatcherUtils::SystemInfo::FileSystemCaseSensitivity() {
+    if (isLinux()) {
+        return Qt::CaseSensitive;
+    }
+    return Qt::CaseInsensitive;
 }
 
 int JBFileWatcherUtils::StringUtil::compare(QChar c1, QChar c2, bool ignoreCase) {
@@ -59,12 +81,23 @@ int JBFileWatcherUtils::StringUtil::compare(QChar c1, QChar c2, bool ignoreCase)
     return d;
 }
 
+int JBFileWatcherUtils::StringUtil::lastIndexOf(const QString &s, QChar c, int start, int end) {
+    start = qMax(start, 0);
+    for (int i = qMin(end, s.length()) - 1; i >= start; i--) {
+        if (s.at(i) == c) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 int JBFileWatcherUtils::Integer::compare(int x, int y) {
     return (x < y) ? -1 : ((x == y) ? 0 : 1);
 }
 
 int JBFileWatcherUtils::PathUtil::getLastIndexOfPathSeparator(const QString &path, int end) {
-    return qMax(path.lastIndexOf('/', end - 1), path.lastIndexOf('\\', end - 1));
+    return qMax(StringUtil::lastIndexOf(path, '/', 0, end - 1),
+                StringUtil::lastIndexOf(path, '\\', 0, end - 1));
 }
 
 QString JBFileWatcherUtils::PathUtil::getParentPath(const QString &path) {
@@ -72,7 +105,7 @@ QString JBFileWatcherUtils::PathUtil::getParentPath(const QString &path) {
         return "";
     }
     int end = qMax(path.lastIndexOf('/'), path.lastIndexOf('\\'));
-    if (end == path.length() - 1) {
+    if (end == path.size() - 1) {
         end = getLastIndexOfPathSeparator(path, end);
     }
     if (end == -1 || end == 0) {
@@ -91,28 +124,187 @@ QString JBFileWatcherUtils::PathUtil::getParentPath(const QString &path) {
 
 bool JBFileWatcherUtils::PathUtil::isWindowsUNCRoot(const QString &path,
                                                     int lastPathSeparatorPosition) {
-#ifndef Q_OS_WINDOWS
-    return false;
-#else
-    return (path.startsWith("//") || path.startsWith("\\\\")) &&
+
+    return SystemInfo::isWindows() && (path.startsWith("//") || path.startsWith("\\\\")) &&
            getLastIndexOfPathSeparator(path, lastPathSeparatorPosition) == 1;
-#endif
 }
 
 bool JBFileWatcherUtils::FileUtil::startsWith(const QString &path, const QString &prefix) {
     return path.startsWith(prefix, SystemInfo::FileSystemCaseSensitivity());
 }
 
-bool JBFileWatcherUtils::FileUtil::pathsEqual(const QString &path1, const QString &path2) {
+bool JBFileWatcherUtils::FileUtil::pathsEqual(QString path1, QString path2) {
     if (path1 == path2) {
         return true;
     }
     if (path1.isEmpty() || path2.isEmpty()) {
         return false;
     }
-    QFileInfo info1(path1);
-    QFileInfo info2(path2);
-    return info1.canonicalFilePath() == info2.canonicalFilePath();
+    path1 = toCanonicalPath(path1);
+    path2 = toCanonicalPath(path2);
+    return !path1.compare(path2, SystemInfo::FileSystemCaseSensitivity());
+}
+
+QString JBFileWatcherUtils::FileUtil::toCanonicalPath(QString path) {
+    return toCanonicalPath(std::move(path), QDir::separator(), true);
+}
+
+QString JBFileWatcherUtils::FileUtil::toCanonicalPath(QString path, QChar separatorChar,
+                                                      bool removeLastSlash) {
+    if (path.isEmpty()) {
+        return path;
+    }
+    if (path.at(0) == '.') {
+        if (path.size() == 1) {
+            return "";
+        }
+        QChar c = path.at(1);
+        if (c == '/' || c == separatorChar) {
+            path = path.mid(2);
+        }
+    }
+
+    if (separatorChar != '/') {
+        path = path.replace(separatorChar, '/');
+    }
+    // trying to speedup the common case when there are no "//" or "/."
+    int index = -1;
+    do {
+        index = path.indexOf('/', index + 1);
+        QChar next = (index == path.size() - 1) ? 0 : path.at(index + 1);
+        if (next == '.' || next == '/') {
+            break;
+        }
+    } while (index != -1);
+    if (index == -1) {
+        if (removeLastSlash) {
+            QString nullable;
+            int start = processRoot(path, nullable);
+            Q_UNUSED(nullable)
+            int slashIndex = path.lastIndexOf('/');
+            return slashIndex != -1 && slashIndex > start && slashIndex == path.size() - 1
+                       ? path.mid(0, path.size() - 1)
+                       : path;
+        }
+        return path;
+    }
+
+    QString result;
+    int start = processRoot(path, result);
+    int dots = 0;
+    bool separator = true;
+
+    for (int i = start; i < path.size(); ++i) {
+        QChar c = path.at(i);
+        if (c == '/') {
+            if (!separator) {
+                if (!processDots(result, dots, start)) {
+                    // return resolveSymlinksAndCanonicalize(path, separatorChar, removeLastSlash);
+                }
+                dots = 0;
+            }
+            separator = true;
+        } else if (c == '.') {
+            if (separator || dots > 0) {
+                ++dots;
+            } else {
+                result.append('.');
+            }
+            separator = false;
+        } else {
+            while (dots > 0) {
+                result.append('.');
+                dots--;
+            }
+            result.append(c);
+            separator = false;
+        }
+    }
+
+    if (dots > 0) {
+        if (!processDots(result, dots, start)) {
+            // return resolveSymlinksAndCanonicalize(path, separatorChar,removeLastSlash);
+        }
+    }
+
+    int lastChar = result.size() - 1;
+    if (removeLastSlash && lastChar >= 0 && result.at(lastChar) == '/' && lastChar > start) {
+        result.remove(lastChar, 1);
+    }
+
+    return result;
+}
+
+int JBFileWatcherUtils::FileUtil::processRoot(QString &path, QString &result) {
+    if (SystemInfo::isWindows() && path.size() > 1 && path.at(0) == '/' && path.at(1) == '/') {
+        result.append("//");
+
+        int hostStart = 2;
+        while (hostStart < path.size() && path.at(hostStart) == '/')
+            hostStart++;
+        if (hostStart == path.size())
+            return hostStart;
+        int hostEnd = path.indexOf('/', hostStart);
+        if (hostEnd < 0)
+            hostEnd = path.size();
+        result.append(path.midRef(hostStart, hostEnd - hostStart));
+        result.append('/');
+
+        int shareStart = hostEnd;
+        while (shareStart < path.size() && path.at(shareStart) == '/')
+            shareStart++;
+        if (shareStart == path.size())
+            return shareStart;
+        int shareEnd = path.indexOf('/', shareStart);
+        if (shareEnd < 0)
+            shareEnd = path.size();
+        result.append(path.midRef(shareStart, shareEnd - shareStart));
+        result.append('/');
+
+        return shareEnd;
+    }
+
+    if (!path.isEmpty() && path.at(0) == '/') {
+        result.append('/');
+        return 1;
+    }
+
+    if (path.size() > 2 && path.at(1) == ':' && path.at(2) == '/') {
+        result.append(path.midRef(0, 3));
+        return 3;
+    }
+
+    return 0;
+}
+
+bool JBFileWatcherUtils::FileUtil::processDots(QString &result, int dots, int start) {
+    if (dots == 2) {
+        int pos = -1;
+        if (!result.endsWith("/../") && result != "../") {
+            pos = StringUtil::lastIndexOf(result, '/', start, result.size() - 1);
+            if (pos >= 0) {
+                ++pos; // separator found, trim to next char
+            } else if (start > 0) {
+                pos = start; // path is absolute, trim to root ('/..' -> '/')
+            } else if (result.length() > 0) {
+                pos = 0; // path is relative, trim to default ('a/..' -> '')
+            }
+        }
+        if (pos >= 0) {
+            // if (symlinkResolver != null && symlinkResolver.isSymlink(result)) {
+            //   return false;
+            // }
+            result.remove(pos, result.length() - pos);
+        } else {
+            result.append("../"); // impossible to traverse, keep as-is
+        }
+    } else if (dots != 1) {
+        for (int i = 0; i < dots; i++) {
+            result.append('.');
+        }
+        result.append('/');
+    }
+    return true;
 }
 
 bool JBFileWatcherUtils::OSAgnosticPathUtil::isSlash(QChar c) {
@@ -120,7 +312,7 @@ bool JBFileWatcherUtils::OSAgnosticPathUtil::isSlash(QChar c) {
 }
 
 bool JBFileWatcherUtils::OSAgnosticPathUtil::isUncPath(const QString &path) {
-    return path.length() > 1 && isSlash(path.at(0)) && path.at(1) == path.at(0);
+    return path.size() > 1 && isSlash(path.at(0)) && path.at(1) == path.at(0);
 }
 
 bool JBFileWatcherUtils::OSAgnosticPathUtil::startsWith(const QString &path,

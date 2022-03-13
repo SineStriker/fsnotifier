@@ -59,7 +59,8 @@ void JBFileWatcherAdvancedNSink::notifyDirtyPath(const QString &path) {
 
 void JBFileWatcherAdvancedNSink::notifyPathCreatedOrDeleted(const QString &path) {
     auto paths = myWatcher->myPathMap.mapToOriginalWatchRoots(path, true);
-    if (!paths.isEmpty()) {
+    auto parentPaths = myWatcher->myPathMap.mapToUpperWatchRoots(path);
+    if (!paths.isEmpty() || !parentPaths.isEmpty()) {
         QMutexLocker locker(myLock.data());
         for (auto it = paths.begin(); it != paths.end(); ++it) {
             const QString &p = *it;
@@ -68,6 +69,11 @@ void JBFileWatcherAdvancedNSink::notifyPathCreatedOrDeleted(const QString &path)
             if (!parentPath.isEmpty()) {
                 myDirtyPaths.addDirtyPath(parentPath);
             }
+        }
+        // Potential recursively changed parent paths
+        for (auto it = parentPaths.begin(); it != parentPaths.end(); ++it) {
+            const QString &p = *it;
+            myDirtyPaths.addDirtyPathRecursive(p);
         }
     }
     notifyOnEvent(path);

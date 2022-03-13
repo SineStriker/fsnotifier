@@ -6,7 +6,7 @@
 #include <QFileInfo>
 #include <QThread>
 
-typedef JBFileWatcherUtils::WatcherOp WatcherOp;
+using namespace JBFileWatcherUtils;
 
 JBNativeFileWatcher::JBNativeFileWatcher(QObject *parent)
     : JBPluggableFileWatcher(parent), myLastChangedPathsLock(new QMutex()) {
@@ -134,10 +134,10 @@ void JBNativeFileWatcher::setWatchRootsCore(QStringList recursive, QStringList f
 
     QStringList ignored;
 
-#ifdef Q_OS_WINDOWS
-    recursive = screenUncRoots(recursive, ignored);
-    flat = screenUncRoots(flat, ignored);
-#endif
+    if (SystemInfo::isWindows()) {
+        recursive = screenUncRoots(recursive, ignored);
+        flat = screenUncRoots(flat, ignored);
+    }
 
     myIgnoredRoots = ignored;
     myNotificationSink->notifyManualWatchRoots(this, ignored);
@@ -179,7 +179,7 @@ QStringList JBNativeFileWatcher::screenUncRoots(const QStringList &roots, QStrin
     QStringList filtered;
     for (auto it = roots.begin(); it != roots.end(); ++it) {
         const QString &root = *it;
-        if (JBFileWatcherUtils::OSAgnosticPathUtil::isUncPath(root)) {
+        if (OSAgnosticPathUtil::isUncPath(root)) {
             ignored.append(root);
         } else {
             filtered.append(root);
@@ -242,7 +242,7 @@ void JBNativeFileWatcher::notifyTextAvailable(const QString &line,
     }
 
     if (myLastOp == WatcherOp::UNKNOWN) {
-        WatcherOp watcherOp = JBFileWatcherUtils::StringToWatcherOp(line);
+        WatcherOp watcherOp = StringToWatcherOp(line);
         if (watcherOp == WatcherOp::UNKNOWN) {
             jbWarning().noquote() << "[Watcher] Illegal watcher command: \'" + line + "\'";
             return;
@@ -258,7 +258,7 @@ void JBNativeFileWatcher::notifyTextAvailable(const QString &line,
             myLastOp = watcherOp;
         }
     } else if (myLastOp == WatcherOp::MESSAGE) {
-        notifyOnFailure(JBFileWatcherUtils::MessageToFailureReasonString(line));
+        notifyOnFailure(MessageToFailureReasonString(line));
         myLastOp = WatcherOp::UNKNOWN;
     } else if (myLastOp == WatcherOp::REMAP || myLastOp == WatcherOp::UNWATCHEABLE) {
         if (line == '#') {
@@ -304,20 +304,20 @@ void JBNativeFileWatcher::processUnwatchable() {
 }
 
 void JBNativeFileWatcher::processChange(const QString &path, WatcherOp op) {
-#ifdef Q_OS_WINDOWS
-    if (op == WatcherOp::RECDIRTY) {
-        myNotificationSink->notifyReset(path);
-        return;
+    if (SystemInfo::isWindows()) {
+        if (op == WatcherOp::RECDIRTY) {
+            myNotificationSink->notifyReset(path);
+            return;
+        }
     }
-#endif
 
     if ((op == WatcherOp::CHANGE || op == WatcherOp::STATS) && isRepetition(path)) {
         return;
     }
 
-#ifdef Q_OS_MAC
-//    path = Normalizer.normalize(path, Normalizer.Form.NFC);
-#endif
+    if (SystemInfo::isMac()) {
+        // path = Normalizer.normalize(path, Normalizer.Form.NFC);
+    }
 
     switch (op) {
     case WatcherOp::STATS:
@@ -339,7 +339,7 @@ void JBNativeFileWatcher::processChange(const QString &path, WatcherOp op) {
         break;
 
     default:
-        jbWarning() << "[Watcher] Unexpected op:" << JBFileWatcherUtils::WatcherOpToString(op);
+        jbWarning() << "[Watcher] Unexpected op:" << WatcherOpToString(op);
     }
 }
 

@@ -138,6 +138,20 @@ QSet<QString> JBCanonicalPathMap::mapToOriginalWatchRoots(const QString &reporte
     return changedPaths.toQSet();
 }
 
+QSet<QString> JBCanonicalPathMap::mapToUpperWatchRoots(const QString &reportedPath) const {
+    if (myOptimizedFlatWatchRoots.isEmpty() && myOptimizedRecursiveWatchRoots.isEmpty()) {
+        return {};
+    }
+    QStringList affectedPaths = applyMapping(reportedPath);
+    JBNavigableFileSet changedPaths;
+    for (auto it = affectedPaths.begin(); it != affectedPaths.end(); ++it) {
+        const auto &affectedPath = *it;
+        addPrefixedPaths(myOptimizedRecursiveWatchRoots, affectedPath, changedPaths);
+        addPrefixedPaths(myOptimizedFlatWatchRoots, affectedPath, changedPaths);
+    }
+    return changedPaths.toQSet();
+}
+
 QStringList JBCanonicalPathMap::applyMapping(const QString &reportedPath) const {
     if (myPathMappings.isEmpty()) {
         return {reportedPath};
@@ -163,7 +177,9 @@ void JBCanonicalPathMap::addPrefixedPaths(const JBNavigableFileSet &paths, const
     auto it = paths.ceiling(prefix);
     if (it != paths.end() && FileUtil::startsWith(*it, prefix)) {
         // It's worth going for the set and iterator
-        it++;
+        if (FileUtil::pathsEqual(*it, prefix)) {
+            it++;
+        }
         for (; it != paths.end(); ++it) {
             const auto &root = *it;
             if (FileUtil::startsWith(root, prefix)) {

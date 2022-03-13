@@ -27,6 +27,8 @@ public:
     bool belongsToWatchRoots(const QString &reportedPath, bool isFile) const;
 
     QSet<QString> mapToOriginalWatchRoots(const QString &reportedPath, bool isExact) const;
+    QSet<QString> mapToUpperWatchRoots(const QString &reportedPath) const; // Custom
+
     QStringList applyMapping(const QString &reportedPath) const;
 
 private:
