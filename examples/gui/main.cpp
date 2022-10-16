@@ -3,9 +3,7 @@
 #include <QApplication>
 #include <QDir>
 
-#include "FileSystemNotifier.h"
-
-#include "JetBrainsFileWatcher/JBFileWatcherUtils.h"
+#include "fsnotifier.h"
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);

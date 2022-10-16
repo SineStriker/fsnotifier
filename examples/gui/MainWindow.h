@@ -5,7 +5,7 @@
 #include <QMainWindow>
 #include <QPushButton>
 
-#include "FileSystemNotifier.h"
+#include "fsnotifier.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT

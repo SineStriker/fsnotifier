@@ -38,4 +38,6 @@ build*
 Libs/*
 *.lnk
 cmake-*
-JetBrainsFileWatcherCore*
+cache
+.cache
+.vscode
