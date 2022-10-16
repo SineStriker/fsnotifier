@@ -1,5 +1,4 @@
 #include "MainWindow.h"
-#include "JetBrainsFileWatcher/JBFileWatcherAdvancedNSink.h"
 
 #include <QApplication>
 #include <QDateTime>
@@ -40,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(fs, &FileSystemNotifier::renamed, this, [](const QStringList &paths) {
         qDebug() << "[Paths renamed]";
         std::for_each(paths.begin(), paths.end(), [](const QString &path) { //
-            qDebug().noquote() << path;
+            qDebug().noquote() << path << QFileInfo::exists(path);
         });
     });
 

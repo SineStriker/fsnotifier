@@ -1,6 +1,6 @@
 #include "FileSystemNotifier.h"
-#include "FileSystemNotifier_p.h"
-#include "JetBrainsFileWatcher/JBFileWatchNamespace.h"
+#include "private/FileSystemNotifier_p.h"
+#include "core/JBFileWatchNamespace.h"
 
 using namespace JB::Utils;
 

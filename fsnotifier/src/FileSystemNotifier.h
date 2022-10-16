@@ -4,11 +4,13 @@
 #include <QObject>
 #include <QSet>
 
+#include "fsnotifier_global.h"
+
 class FileSystemNotifierPrivate;
 
 #define FSN FileSystemNotifier::instance()
 
-class FileSystemNotifier : public QObject {
+class FSNOTIFIER_API FileSystemNotifier : public QObject {
     Q_OBJECT
 public:
     explicit FileSystemNotifier(QObject *parent = nullptr);
